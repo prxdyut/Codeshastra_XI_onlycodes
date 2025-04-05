@@ -1,7 +1,6 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { TOOL_CATEGORIES } from "../consts/cards";
 import Link from "next/link";
 
 // Using the theme from landing page
@@ -33,6 +32,63 @@ const FREQUENTLY_USED = [
         uses: 8,
         credits: 3,
         category: "Design & Media",
+    },
+];
+
+interface ToolCategory {
+    title: string;
+    tools: string[];
+    description: string;
+    icon: string;
+}
+
+const TOOL_CATEGORIES: ToolCategory[] = [
+    {
+        title: "Code Tools",
+        tools: ["Code Formatter"],
+        description: "Tools for coding and formatting.",
+        icon: "💻",
+    },
+    {
+        title: "Network Tools",
+        tools: ["IP Lookup", "DNS Lookup", "Ping Test", "Traceroute"],
+        description: "Tools for network diagnostics and analysis.",
+        icon: "🌐",
+    },
+    {
+        title: "Random Tools",
+        tools: ["Random Number", "UUID Generator", "Dice Roll", "Coin Flip"],
+        description: "Tools for generating random values and outcomes.",
+        icon: "🎲",
+    },
+    {
+        title: "Conversion Tools",
+        tools: ["CSV-Excel Editor", "Image Converter"],
+        description: "Tools for converting files and formats.",
+        icon: "🔄",
+    },
+    {
+        title: "Format Tools",
+        tools: [
+            "JSON Formatter",
+            "Markdown Formatter",
+            "YAML Formatter",
+            "XML Formatter",
+            "TOML Formatter",
+        ],
+        description: "Tools for formatting various data types.",
+        icon: "🛠️",
+    },
+    {
+        title: "Utility Tools",
+        tools: [
+            "QR Generator",
+            "Password Generator",
+            "URL Shortener",
+            "API Tester",
+        ],
+        description: "Tools for various utility purposes.",
+        icon: "🔧",
     },
 ];
 

@@ -9,22 +9,33 @@ import FormatTools from "@/app/components/tools/FormatTools";
 import UtilityTools from "@/app/components/tools/UtilityTools";
 
 const toolComponents: Record<string, React.ComponentType> = {
+    // Code Tools
     "code-formatter": CodeFormatter,
+    
+    // Network Tools
     "ip-lookup": NetworkTools,
     "dns-lookup": NetworkTools,
     "ping-test": NetworkTools,
-    traceroute: NetworkTools,
+    "traceroute": NetworkTools,
+    
+    // Random Tools
     "random-number": RandomTools,
     "uuid-generator": RandomTools,
     "dice-roll": RandomTools,
     "coin-flip": RandomTools,
-    "csv-excel-editor": ConversionTools, // Keep only this one, remove "excel-to-csv"
+    
+    // Conversion Tools
+    "csv-excel": ConversionTools,
     "image-converter": ConversionTools,
+    
+    // Format Tools
     "json-formatter": FormatTools,
     "markdown-formatter": FormatTools,
     "yaml-formatter": FormatTools,
     "xml-formatter": FormatTools,
     "toml-formatter": FormatTools,
+    
+    // Utility Tools
     "qr-generator": UtilityTools,
     "password-generator": UtilityTools,
     "url-shortener": UtilityTools,

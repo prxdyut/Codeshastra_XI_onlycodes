@@ -103,45 +103,32 @@ export default function ConversionTools() {
 
         setState((prev) => ({ ...prev, loading: true, error: null }));
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/excel-to-csv",
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
+            const endpoint = tool === "image-converter" 
+                ? "http://localhost:5000/api/convert-image"
+                : "http://localhost:5000/api/excel-to-csv";
+                
+            const response = await fetch(endpoint, {
+                method: "POST",
+                body: formData,
+            });
+
             const data = await response.json();
-
             if (data.success) {
-                const rows = data.csv.split("\n");
-                const headers = rows[0].split(",").map((header: string) => ({
-                    field: header.trim(),
-                    headerName: header.trim(),
-                }));
-
-                const gridData = rows.slice(1).map((row: string) => {
-                    const values = row.split(",");
-                    return headers.reduce(
-                        (acc: any, header: any, index: number) => {
-                            acc[header.field] = values[index]?.trim() || "";
-                            return acc;
-                        },
-                        {}
-                    );
-                });
-
                 setState((prev) => ({
                     ...prev,
-                    gridColumns: headers,
-                    gridData,
+                    gridColumns: data.columns || [],
+                    gridData: data.rows || [],
                     file,
-                    content: data.csv,
+                    content: data.csv || "",
                 }));
             } else {
                 throw new Error(data.error);
             }
         } catch (error) {
-            setState((prev) => ({ ...prev, error: "Failed to parse file" }));
+            setState((prev) => ({ 
+                ...prev, 
+                error: "Failed to process file" 
+            }));
         } finally {
             setState((prev) => ({ ...prev, loading: false }));
         }

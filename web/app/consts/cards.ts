@@ -48,36 +48,43 @@ export const TOOL_CATEGORIES = [
     {
         title: "Code Tools",
         tools: ["Code Formatter"],
+        description: "Format and beautify your code",
+        icon: "💻",
+        route: "code-formatter"
     },
     {
         title: "Network Tools",
         tools: ["IP Lookup", "DNS Lookup", "Ping Test", "Traceroute"],
+        description: "Network diagnostics and testing",
+        icon: "🌐",
+        routes: ["ip-lookup", "dns-lookup", "ping-test", "traceroute"]
     },
     {
         title: "Random Tools",
         tools: ["Random Number", "UUID Generator", "Dice Roll", "Coin Flip"],
+        description: "Generate random values",
+        icon: "🎲",
+        routes: ["random-number", "uuid-generator", "dice-roll", "coin-flip"]
     },
     {
         title: "Conversion Tools",
         tools: ["CSV-Excel Editor", "Image Converter"],
+        description: "Convert between formats",
+        icon: "🔄",
+        routes: ["csv-excel", "image-converter"]
     },
     {
         title: "Format Tools",
-        tools: [
-            "JSON Formatter",
-            "Markdown Formatter",
-            "YAML Formatter",
-            "XML Formatter",
-            "TOML Formatter",
-        ],
+        tools: ["JSON Formatter", "Markdown Formatter", "YAML Formatter", "XML Formatter", "TOML Formatter"],
+        description: "Format and validate data",
+        icon: "📝",
+        routes: ["json-formatter", "markdown-formatter", "yaml-formatter", "xml-formatter", "toml-formatter"]
     },
     {
         title: "Utility Tools",
-        tools: [
-            "QR Generator",
-            "Password Generator",
-            "URL Shortener",
-            "API Tester",
-        ],
-    },
+        tools: ["QR Generator", "Password Generator", "URL Shortener", "API Tester"],
+        description: "Helpful utilities",
+        icon: "🔧",
+        routes: ["qr-generator", "password-generator", "url-shortener", "api-tester"]
+    }
 ];
