@@ -11,6 +11,9 @@ importers:
       '@clerk/nextjs':
         specifier: 6.12.8
         version: 6.12.8(next@15.2.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@monaco-editor/react':
+        specifier: ^4.7.0
+        version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@types/node':
         specifier: ^22.10.7
         version: 22.14.0
@@ -23,6 +26,12 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
+      ag-grid-community:
+        specifier: ^33.2.1
+        version: 33.2.1
+      ag-grid-react:
+        specifier: ^33.2.1
+        version: 33.2.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.3)
@@ -56,6 +65,9 @@ importers:
       react-error-boundary:
         specifier: ^5.0.0
         version: 5.0.0(react@19.1.0)
+      react-icons:
+        specifier: ^5.5.0
+        version: 5.5.0(react@19.1.0)
       react-syntax-highlighter:
         specifier: ^15.6.1
         version: 15.6.1(react@19.1.0)
@@ -249,6 +261,16 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
+  '@monaco-editor/loader@1.5.0':
+    resolution: {integrity: sha512-hKoGSM+7aAc7eRTRjpqAZucPmoNOC4UUbknb/VNoTkEIkCPhqV8LfbsgM1webRM7S/z21eHEx9Fkwx8Z/C/+Xw==}
+
+  '@monaco-editor/react@4.7.0':
+    resolution: {integrity: sha512-cyzXQCtO47ydzxpQtCGSQGOC8Gk3ZUeBXFAxD+CWXYFo5OqZyZUonFl0DwUlTyAfRHntBfw2p3w4s9R6oe1eCA==}
+    peerDependencies:
+      monaco-editor: '>= 0.25.0 < 1'
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   '@mongodb-js/saslprep@1.2.1':
     resolution: {integrity: sha512-1NCa8GsZ+OFLTw5KkKQS22wLS+Rs+y02sgkhr99Pm4OSXtSDHCJyq0uscPF0qA86ipGYH4PwtC2+a8Y4RKkCcg==}
 
@@ -363,6 +385,18 @@ packages:
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
     engines: {node: '>=6.5'}
+
+  ag-charts-types@11.2.1:
+    resolution: {integrity: sha512-uzN1OUEn5nCFDZ4GTNkYHpg+6hbF+NamIwUOK/aSHBRvJxJU9/sK+K1QkqYpU912mHtpAZ9x0zEddr2sw6pT2Q==}
+
+  ag-grid-community@33.2.1:
+    resolution: {integrity: sha512-eQVRv+x8C3+T2weBux7Y+SN6IMs4lYJjTmNSfm/OX3ANH3GsscvqRiOxoV/R+hQWL7GUXOCLPZHFzZpzSdk0xg==}
+
+  ag-grid-react@33.2.1:
+    resolution: {integrity: sha512-06Jo2fi90Ke/ZXM1kvcWa5MX+9DM3IKVuCgGeTrQn8PzOOccYWBvVPGwLXk1TAQ2b9kQfKwDCU5q5JAJ6+tPUg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   agentkeepalive@4.6.0:
     resolution: {integrity: sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==}
@@ -801,6 +835,9 @@ packages:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
 
+  monaco-editor@0.52.2:
+    resolution: {integrity: sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==}
+
   mongodb-connection-string-url@3.0.2:
     resolution: {integrity: sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==}
 
@@ -1029,6 +1066,11 @@ packages:
     peerDependencies:
       react: '>=16.13.1'
 
+  react-icons@5.5.0:
+    resolution: {integrity: sha512-MEFcXdkP3dLo8uumGI5xN3lDFNsRtrjbOEKDLD7yv76v4wpnEq2Lt2qeHaQOr34I/wPN3s3+N08WkQ+CW37Xiw==}
+    peerDependencies:
+      react: '*'
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -1122,6 +1164,9 @@ packages:
 
   sparse-bitfield@3.0.3:
     resolution: {integrity: sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ==}
+
+  state-local@1.0.7:
+    resolution: {integrity: sha512-HTEHMNieakEnoe33shBYcZ7NX83ACUjCu8c40iOGEZsngj9zRnkqS9j1pqQPXwobB0ZcVTk27REb7COQ0UR59w==}
 
   std-env@3.9.0:
     resolution: {integrity: sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==}
@@ -1434,6 +1479,17 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@monaco-editor/loader@1.5.0':
+    dependencies:
+      state-local: 1.0.7
+
+  '@monaco-editor/react@4.7.0(monaco-editor@0.52.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@monaco-editor/loader': 1.5.0
+      monaco-editor: 0.52.2
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
   '@mongodb-js/saslprep@1.2.1':
     dependencies:
       sparse-bitfield: 3.0.3
@@ -1527,6 +1583,19 @@ snapshots:
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
+
+  ag-charts-types@11.2.1: {}
+
+  ag-grid-community@33.2.1:
+    dependencies:
+      ag-charts-types: 11.2.1
+
+  ag-grid-react@33.2.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      ag-grid-community: 33.2.1
+      prop-types: 15.8.1
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   agentkeepalive@4.6.0:
     dependencies:
@@ -1939,6 +2008,8 @@ snapshots:
 
   minipass@7.1.2: {}
 
+  monaco-editor@0.52.2: {}
+
   mongodb-connection-string-url@3.0.2:
     dependencies:
       '@types/whatwg-url': 11.0.5
@@ -2146,6 +2217,10 @@ snapshots:
       '@babel/runtime': 7.27.0
       react: 19.1.0
 
+  react-icons@5.5.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+
   react-is@16.13.1: {}
 
   react-syntax-highlighter@15.6.1(react@19.1.0):
@@ -2261,6 +2336,8 @@ snapshots:
   sparse-bitfield@3.0.3:
     dependencies:
       memory-pager: 1.5.0
+
+  state-local@1.0.7: {}
 
   std-env@3.9.0: {}
 
