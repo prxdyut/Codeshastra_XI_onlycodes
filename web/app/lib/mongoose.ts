@@ -1,10 +1,12 @@
 // lib/mongoose.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:secret@localhost:27069/mydatabase?authSource=admin';
+const MONGODB_URI =
+    process.env.MONGODB_URI ||
+    "mongodb://admin:secret@localhost:27069/mydatabase?authSource=admin";
 
 if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable');
+    throw new Error("Please define the MONGODB_URI environment variable");
 }
 
 /**
@@ -22,6 +24,14 @@ if (!cached) {
 
 async function connectDB() {
     if (cached.conn) {
+        console.log(
+            "MongoDB connection already established:",
+            cached.conn.connection.host
+        );
+        console.log(
+            "MongoDB connection state:",
+            cached.conn.connection.readyState
+        );
         return cached.conn;
     }
 
@@ -30,9 +40,11 @@ async function connectDB() {
             bufferCommands: false,
         };
 
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-            return mongoose;
-        });
+        cached.promise = mongoose
+            .connect(MONGODB_URI, opts)
+            .then((mongoose) => {
+                return mongoose;
+            });
     }
 
     try {
@@ -41,7 +53,10 @@ async function connectDB() {
         cached.promise = null;
         throw e;
     }
-
+    console.log("MongoDB connection established:", cached.conn.connection.host);
+    console.log("MongoDB connection state:", cached.conn.connection.readyState);
+    console.log("Connected to MongoDB:", cached.conn.connection.host);
+    console.log("MongoDB connection state:", cached.conn.connection.readyState);
     return cached.conn;
 }
 

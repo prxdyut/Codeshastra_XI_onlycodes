@@ -196,10 +196,14 @@ const renderTracerouteResult = (data: any) => {
 export default function NetworkTools() {
     const pathname = usePathname();
     const tool = pathname.split("/").pop();
+
+    // Group all state hooks together
     const [input, setInput] = useState("");
     const [result, setResult] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
+    // Define fetchData before using it in useEffect
     const fetchData = async () => {
         setIsLoading(true);
         let endpoint = "http://localhost:5000";
@@ -239,13 +243,63 @@ export default function NetworkTools() {
             setIsLoading(false);
         }
     };
-
-    // Auto-fetch for IP lookup on mount
+    const LoadingSkeleton = () => (
+        <div className="grid gap-6 p-6 bg-white rounded-lg shadow-lg border border-gray-200 animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                        <div className="space-y-3">
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                        <div className="space-y-3">
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                        <div className="space-y-3">
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                        <div className="space-y-3">
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+    // Mount effect
     useEffect(() => {
-        if (tool === "ip-lookup") {
+        setIsMounted(true);
+    }, []);
+
+    // Data fetching effect
+    useEffect(() => {
+        if (isMounted && tool === "ip-lookup") {
             fetchData();
         }
-    }, [tool]);
+    }, [isMounted, tool]);
+
+    if (!isMounted) {
+        return <LoadingSkeleton />;
+    }
 
     const renderIpLookupResult = (data: any) => {
         if (!data) return null;
@@ -784,49 +838,6 @@ export default function NetworkTools() {
             </div>
         );
     };
-
-    const LoadingSkeleton = () => (
-        <div className="grid gap-6 p-6 bg-white rounded-lg shadow-lg border border-gray-200 animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-            <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="space-y-3">
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                        </div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="space-y-3">
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="space-y-3">
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                        </div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="space-y-3">
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 
     return (
         <div className="space-y-4">

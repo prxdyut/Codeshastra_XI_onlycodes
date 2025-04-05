@@ -1,12 +1,14 @@
-import { Suspense } from "react";
+import { use, Suspense } from "react";
 import ContentWrapper from "@/app/components/layout/ContentWrapper";
 import NetworkTools from "@/app/components/tools/NetworkTools";
 
 export default function NetworkToolPage({
     params,
 }: {
-    params: { tool: string };
+    params: Promise<{ tool: string }>;
 }) {
+    const resolvedParams = use(params);
+
     return (
         <ContentWrapper>
             <Suspense fallback={<div>Loading...</div>}>

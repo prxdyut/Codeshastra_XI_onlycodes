@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import { notFound } from "next/navigation";
 import CodeFormatter from "@/app/components/tools/CodeFormatter";
 import NetworkTools from "@/app/components/tools/NetworkTools";
@@ -30,8 +31,13 @@ const toolComponents: Record<string, React.ComponentType> = {
     "api-tester": UtilityTools,
 };
 
-export default function ToolPage({ params }: { params: { tool: string } }) {
-    const Component = toolComponents[params.tool];
+export default function ToolPage({
+    params,
+}: {
+    params: Promise<{ tool: string }>;
+}) {
+    const resolvedParams = use(params);
+    const Component = toolComponents[resolvedParams.tool];
 
     if (!Component) {
         return notFound();
