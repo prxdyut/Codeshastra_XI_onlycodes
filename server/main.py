@@ -7,13 +7,19 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 # Update CORS configuration to allow all origins and methods
-CORS(app, resources={
-    r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Content-Type"],
+            "allow_credentials": True,
+            "max_age": 3600,
+        }
+    },
+)
 
 # Update imports to be more resilient
 imports = [
@@ -29,6 +35,8 @@ imports = [
     "link_shortner",
     "qrcode",
     "email_lookup",
+    "currency_converter",  # Add this
+    "time_converter",  # Add this
 ]
 
 # Dynamically import and register routes

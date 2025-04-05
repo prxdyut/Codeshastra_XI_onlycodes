@@ -16,18 +16,6 @@ interface ApiTestConfig {
     password: string;
 }
 
-interface CurrencyConfig {
-    amount: string;
-    fromCurrency: string;
-    toCurrency: string;
-}
-
-interface TimeConfig {
-    time: string;
-    fromTimezone: string;
-    toTimezone: string;
-}
-
 export default function UtilityTools() {
     const pathname = usePathname();
     const tool = pathname.split("/").pop();
@@ -36,7 +24,7 @@ export default function UtilityTools() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // New state for API Tester
+    // Only keep API Tester config
     const [apiConfig, setApiConfig] = useState<ApiTestConfig>({
         url: "",
         method: "GET",
@@ -49,128 +37,89 @@ export default function UtilityTools() {
         password: "",
     });
 
-    const [currencyConfig, setCurrencyConfig] = useState<CurrencyConfig>({
-        amount: "",
-        fromCurrency: "USD",
-        toCurrency: "EUR"
-    });
-
-    const [timeConfig, setTimeConfig] = useState<TimeConfig>({
-        time: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        fromTimezone: "UTC",
-        toTimezone: "UTC"
-    });
-
-    const [timezones, setTimezones] = useState<string[]>([]);
-    const [currencies] = useState<string[]>([
-        "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "INR"
-    ]);
-
-    useEffect(() => {
-        if (tool === 'time-converter') {
-            fetch('http://localhost:5000/api/list-timezones')
-                .then(res => res.json())
-                .then(data => setTimezones(data.timezones));
-        }
-    }, [tool]);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
-        let endpoint = "http://localhost:5000";
-        let method = "POST";
-        let body: any = {};
-
-        switch (tool) {
-            case "qr-generator":
-                endpoint += "/api/generate-qrcode";
-                method = "GET";
-                endpoint += `?text=${encodeURIComponent(input)}`;
-                break;
-            case "password-generator":
-                endpoint += "/generate/password";
-                method = "GET";
-                endpoint += `?length=${parseInt(input) || 12}`;
-                break;
-            case "url-shortener":
-                endpoint += "/api/shorten-url";
-                body = { url: input };
-                break;
-            case "api-tester":
-                endpoint += "/api/test-endpoint";
-                const headers: Record<string, string> = apiConfig.headers
-                    .filter((h) => h.key && h.value)
-                    .reduce((acc, h) => ({ ...acc, [h.key]: h.value }), {});
-
-                const queryString = apiConfig.queryParams
-                    .filter((p) => p.key && p.value)
-                    .map(
-                        (p) =>
-                            `${encodeURIComponent(p.key)}=${encodeURIComponent(
-                                p.value
-                            )}`
-                    )
-                    .join("&");
-
-                // Add authentication
-                if (apiConfig.authType === "bearer") {
-                    headers["Authorization"] = `Bearer ${apiConfig.authToken}`;
-                } else if (apiConfig.authType === "basic") {
-                    headers["Authorization"] = `Basic ${btoa(
-                        `${apiConfig.username}:${apiConfig.password}`
-                    )}`;
-                }
-
-                body = {
-                    url: `${apiConfig.url}${
-                        queryString ? `?${queryString}` : ""
-                    }`,
-                    method: apiConfig.method,
-                    headers,
-                    body: apiConfig.body || undefined,
-                };
-                break;
-            case "currency-converter":
-                endpoint += "/api/currency-convert";
-                body = {
-                    amount: parseFloat(currencyConfig.amount),
-                    from: currencyConfig.fromCurrency,
-                    to: currencyConfig.toCurrency
-                };
-                break;
-            case "time-converter":
-                endpoint += "/api/convert-timezone";
-                body = {
-                    time: timeConfig.time,
-                    from_timezone: timeConfig.fromTimezone,
-                    to_timezone: timeConfig.toTimezone
-                };
-                break;
-            case "email-lookup":
-                endpoint += "/api/lookup/email";
-                body = { email: input };
-                break;
-        }
-
         try {
-            const response = await fetch(endpoint, {
-                method,
-                headers:
-                    method === "POST"
-                        ? { "Content-Type": "application/json" }
-                        : undefined,
-                body: method === "POST" ? JSON.stringify(body) : undefined,
-            });
+            let endpoint = "http://localhost:5000";
+            let requestOptions: RequestInit = {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            };
 
-            if (tool === "qr-generator") {
-                const blob = await response.blob();
-                setResult(URL.createObjectURL(blob));
-            } else {
-                const data = await response.json();
-                setResult(data);
+            switch (tool) {
+                case "qr-generator":
+                    endpoint += `/api/generate-qrcode?text=${encodeURIComponent(
+                        input
+                    )}`;
+                    const qrResponse = await fetch(endpoint);
+                    if (!qrResponse.ok)
+                        throw new Error("Failed to generate QR code");
+                    const blob = await qrResponse.blob();
+                    setResult(URL.createObjectURL(blob));
+                    setLoading(false);
+                    return;
+
+                case "password-generator":
+                    endpoint += `/generate/password?length=${
+                        parseInt(input) || 12
+                    }`;
+                    break;
+
+                case "url-shortener":
+                    endpoint += "/api/shorten-url";
+                    requestOptions = {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url: input }),
+                    };
+                    break;
+
+                case "api-tester":
+                    endpoint += "/api/test-endpoint";
+
+                    const headers: Record<string, string> = apiConfig.headers
+                        .filter((h) => h.key && h.value)
+                        .reduce((acc, h) => ({ ...acc, [h.key]: h.value }), {});
+
+                    const queryParams = apiConfig.queryParams
+                        .filter((p) => p.key && p.value)
+                        .reduce((acc, p) => ({ ...acc, [p.key]: p.value }), {});
+
+                    if (apiConfig.authType === "bearer") {
+                        headers[
+                            "Authorization"
+                        ] = `Bearer ${apiConfig.authToken}`;
+                    } else if (apiConfig.authType === "basic") {
+                        headers["Authorization"] = `Basic ${btoa(
+                            `${apiConfig.username}:${apiConfig.password}`
+                        )}`;
+                    }
+
+                    requestOptions = {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            url: apiConfig.url,
+                            method: apiConfig.method,
+                            headers,
+                            params: queryParams,
+                            body: apiConfig.body
+                                ? JSON.parse(apiConfig.body)
+                                : undefined,
+                        }),
+                    };
+                    break;
             }
+
+            const response = await fetch(endpoint, requestOptions);
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            setResult(data);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -463,73 +412,6 @@ export default function UtilityTools() {
         );
     };
 
-    const renderCurrencyConverter = () => {
-        return (
-            <div className="space-y-4">
-                <input
-                    type="number"
-                    value={currencyConfig.amount}
-                    onChange={(e) => setCurrencyConfig(prev => ({ ...prev, amount: e.target.value }))}
-                    placeholder="Enter amount"
-                    className="w-full p-2 border rounded"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <select
-                        value={currencyConfig.fromCurrency}
-                        onChange={(e) => setCurrencyConfig(prev => ({ ...prev, fromCurrency: e.target.value }))}
-                        className="p-2 border rounded bg-white"
-                    >
-                        {currencies.map(currency => (
-                            <option key={currency} value={currency}>{currency}</option>
-                        ))}
-                    </select>
-                    <select
-                        value={currencyConfig.toCurrency}
-                        onChange={(e) => setCurrencyConfig(prev => ({ ...prev, toCurrency: e.target.value }))}
-                        className="p-2 border rounded bg-white"
-                    >
-                        {currencies.map(currency => (
-                            <option key={currency} value={currency}>{currency}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-        );
-    };
-
-    const renderTimeConverter = () => {
-        return (
-            <div className="space-y-4">
-                <input
-                    type="datetime-local"
-                    value={timeConfig.time.replace(' ', 'T')}
-                    onChange={(e) => setTimeConfig(prev => ({ ...prev, time: e.target.value.replace('T', ' ') }))}
-                    className="w-full p-2 border rounded"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <select
-                        value={timeConfig.fromTimezone}
-                        onChange={(e) => setTimeConfig(prev => ({ ...prev, fromTimezone: e.target.value }))}
-                        className="p-2 border rounded bg-white"
-                    >
-                        {timezones.map(tz => (
-                            <option key={tz} value={tz}>{tz}</option>
-                        ))}
-                    </select>
-                    <select
-                        value={timeConfig.toTimezone}
-                        onChange={(e) => setTimeConfig(prev => ({ ...prev, toTimezone: e.target.value }))}
-                        className="p-2 border rounded bg-white"
-                    >
-                        {timezones.map(tz => (
-                            <option key={tz} value={tz}>{tz}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-        );
-    };
-
     const renderApiTestResult = (data: any) => {
         const formatHeaders = (headers: any) => {
             if (!headers) return null;
@@ -669,185 +551,41 @@ export default function UtilityTools() {
         );
     };
 
-    const renderEmailLookupResult = (data: any) => {
-        if (!data?.success) return null;
-
-        return (
-            <div className="space-y-6">
-                {/* Email Overview Card */}
-                <div className="grid gap-4 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800">
-                                {data.email}
-                            </h2>
-                            <p className="text-sm text-gray-500">{data.domain}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className={`h-3 w-3 rounded-full ${data.format_valid ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                            <span className={`text-sm font-medium ${data.format_valid ? 'text-green-700' : 'text-red-700'}`}>
-                                {data.format_valid ? 'Valid Format' : 'Invalid Format'}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Security Score */}
-                    <div className="mt-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-gray-700">Security Score</span>
-                            <span className={`text-sm font-bold ${
-                                data.security_score >= 80 ? 'text-green-600' : 
-                                data.security_score >= 60 ? 'text-yellow-600' : 'text-red-600'
-                            }`}>{data.security_score}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                                className={`h-full rounded-full ${
-                                    data.security_score >= 80 ? 'bg-green-500' : 
-                                    data.security_score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${data.security_score}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Domain Information */}
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-4">Domain Information</h3>
-                        <div className="space-y-3">
-                            {Object.entries(data.domain_info).map(([key, value]) => (
-                                <div key={key} className="flex items-center gap-3">
-                                    <span className="text-lg">
-                                        {key === 'ip' ? '🌐' : 
-                                         key === 'isp' ? '🏢' :
-                                         key === 'org' ? '🏛️' :
-                                         key === 'country' ? '🌍' :
-                                         key === 'region' ? '📍' :
-                                         key === 'city' ? '🏙️' : '📋'}
-                                    </span>
-                                    <div>
-                                        <p className="text-xs text-gray-500 capitalize">{key.replace('_', ' ')}</p>
-                                        <p className="text-sm font-medium">{value as string}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Security Features */}
-                    <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-4">Security Features</h3>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-4">
-                                {[
-                                    { label: 'SPF', value: data.email_security.has_spf },
-                                    { label: 'DMARC', value: data.email_security.has_dmarc },
-                                    { label: 'MX Records', value: data.has_mail_server }
-                                ].map((feature) => (
-                                    <div key={feature.label} className="p-3 bg-gray-50 rounded-lg text-center">
-                                        <div className={`text-2xl mb-1 ${feature.value ? 'text-green-500' : 'text-red-500'}`}>
-                                            {feature.value ? '✓' : '×'}
-                                        </div>
-                                        <p className="text-xs font-medium">{feature.label}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Mail Servers */}
-                            <div className="mt-6">
-                                <h4 className="text-xs font-medium text-gray-600 mb-2">Mail Servers</h4>
-                                <div className="space-y-2 max-h-32 overflow-y-auto">
-                                    {data.mx_records.map((server: string, index: number) => (
-                                        <div key={index} className="text-sm bg-gray-50 p-2 rounded">
-                                            {server}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Technical Details */}
-                <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Technical Records</h3>
-                    {Object.entries(data.email_security)
-                        .filter(([key, value]) => typeof value === 'string')
-                        .map(([key, value]) => (
-                            <div key={key} className="mb-4">
-                                <p className="text-xs font-medium text-gray-600 mb-1 capitalize">
-                                    {key.replace('_', ' ')}
-                                </p>
-                                <pre className="text-sm bg-gray-50 p-3 rounded overflow-x-auto">
-                                    {value as string}
-                                </pre>
-                            </div>
-                        ))}
-                </div>
-            </div>
-        );
-    };
-
     const renderResult = () => {
         if (!result) return null;
 
         switch (tool) {
             case "qr-generator":
                 return (
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex justify-center">
                         <img
                             src={result}
                             alt="Generated QR Code"
-                            className="max-w-[300px] border rounded p-2"
+                            className="max-w-[300px]"
                         />
-                        <a
-                            href={result}
-                            download="qrcode.png"
-                            className="text-blue-500 hover:underline text-sm"
-                        >
-                            Download QR Code
-                        </a>
                     </div>
                 );
-
             case "password-generator":
                 return (
-                    <div className="flex items-center gap-2 p-4 bg-gray-50 rounded border">
-                        <span className="font-mono">{result.password}</span>
-                        <button
-                            onClick={() =>
-                                navigator.clipboard.writeText(result.password)
-                            }
-                            className="text-xs text-blue-500 hover:underline"
-                        >
-                            Copy
-                        </button>
+                    <div className="p-4 bg-gray-50 rounded border">
+                        <p className="font-mono text-lg">{result.password}</p>
                     </div>
                 );
-
             case "url-shortener":
                 return (
                     <div className="p-4 bg-gray-50 rounded border">
-                        <p className="font-medium mb-2">Shortened URL:</p>
                         <a
                             href={result.short_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:underline break-all"
+                            className="text-blue-500 hover:underline"
                         >
                             {result.short_url}
                         </a>
                     </div>
                 );
-
             case "api-tester":
                 return renderApiTestResult(result);
-
-            case "email-lookup":
-                return renderEmailLookupResult(result);
-
             default:
                 return (
                     <pre className="p-4 bg-gray-50 rounded border overflow-auto">
@@ -879,63 +617,16 @@ export default function UtilityTools() {
                         {loading ? "Sending Request..." : "Send Request"}
                     </button>
                 </form>
-            ) : tool === "currency-converter" ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {renderCurrencyConverter()}
-                    <button
-                        type="submit"
-                        disabled={loading || !currencyConfig.amount}
-                        className="w-full px-4 py-2 bg-[#78A083] text-white rounded 
-                                 hover:bg-[#6a8f74] disabled:opacity-50 
-                                 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {loading ? "Converting..." : "Convert"}
-                    </button>
-                </form>
-            ) : tool === "time-converter" ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {renderTimeConverter()}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full px-4 py-2 bg-[#78A083] text-white rounded 
-                                 hover:bg-[#6a8f74] disabled:opacity-50 
-                                 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {loading ? "Converting..." : "Convert"}
-                    </button>
-                </form>
-            ) : tool === "email-lookup" ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="email"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Enter email address to lookup..."
-                        className="w-full p-2 border rounded"
-                        required
-                    />
-                    <button
-                        type="submit"
-                        disabled={loading || !input.trim()}
-                        className="w-full px-4 py-2 bg-[#78A083] text-white rounded 
-                                 hover:bg-[#6a8f74] disabled:opacity-50 
-                                 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {loading ? "Looking up..." : "Lookup"}
-                    </button>
-                </form>
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={renderPlaceholder()}
-                        rows={tool === "api-tester" ? 10 : 3}
+                        rows={3}
                         className="w-full p-3 border rounded font-mono text-sm"
                         required
                     />
-
                     <button
                         type="submit"
                         disabled={loading || !input.trim()}

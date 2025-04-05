@@ -212,7 +212,7 @@ export default function Home() {
                                 height={40}
                             />
                             <span className="font-bold text-xl text-[#131316]">
-                                ZeMode
+                                ZeMod
                             </span>
                         </div>
                         <div className="flex gap-6 items-center">

@@ -18,7 +18,7 @@ export function Navbar() {
                             href="/"
                             className="font-bold text-xl text-[#2D3A3A] hover:text-[#78A083]"
                         >
-                            ZeMode
+                            ZeMod
                         </Link>
                     </div>
 

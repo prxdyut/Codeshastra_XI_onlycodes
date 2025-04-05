@@ -7,6 +7,7 @@ import RandomTools from "@/app/components/tools/RandomTools";
 import ConversionTools from "@/app/components/tools/ConversionTools";
 import FormatTools from "@/app/components/tools/FormatTools";
 import UtilityTools from "@/app/components/tools/UtilityTools";
+import MiscTools from "@/app/components/tools/MiscTools";
 
 const toolComponents: Record<string, React.ComponentType> = {
     // Code Tools
@@ -35,14 +36,16 @@ const toolComponents: Record<string, React.ComponentType> = {
     "xml-formatter": FormatTools,
     "toml-formatter": FormatTools,
 
-    // Utility Tools
+    // Separate Utility and Misc tools properly
     "qr-generator": UtilityTools,
     "password-generator": UtilityTools,
     "url-shortener": UtilityTools,
     "api-tester": UtilityTools,
-    "currency-converter": UtilityTools,
-    "time-converter": UtilityTools,
-    "email-lookup": UtilityTools,
+
+    // Misc tools
+    "currency-converter": MiscTools,
+    "time-converter": MiscTools,
+    "email-lookup": MiscTools,
 };
 
 export default function ToolPage({

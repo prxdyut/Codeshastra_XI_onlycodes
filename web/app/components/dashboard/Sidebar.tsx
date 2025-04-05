@@ -20,6 +20,22 @@ export function Sidebar() {
         <aside className="w-64 h-[calc(100vh-4rem)] bg-white border-r border-[#E0E6E3]">
             <nav className="h-full overflow-y-auto p-6">
                 <div className="space-y-6">
+                    {/* Add Socrates special link */}
+                    <Link
+                        href="/dashboard/socrates"
+                        className={`flex items-center gap-2 text-sm py-2 px-3 rounded-lg ${
+                            pathname === "/dashboard/socrates"
+                                ? "bg-amber-50 text-amber-600 font-medium"
+                                : "text-amber-600 hover:bg-amber-50"
+                        }`}
+                    >
+                        <span>🤖</span>
+                        <span className="font-semibold">Socrates AI</span>
+                        <span className="ml-auto text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full">
+                            Beta
+                        </span>
+                    </Link>
+
                     <Link
                         href="/dashboard"
                         className={`flex items-center gap-2 text-sm ${
