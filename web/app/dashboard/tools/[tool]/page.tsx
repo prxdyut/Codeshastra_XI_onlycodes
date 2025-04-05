@@ -17,8 +17,7 @@ const toolComponents: Record<string, React.ComponentType> = {
     "uuid-generator": RandomTools,
     "dice-roll": RandomTools,
     "coin-flip": RandomTools,
-    "csv-to-excel": ConversionTools,
-    "excel-to-csv": ConversionTools,
+    "csv-excel-editor": ConversionTools, // Keep only this one, remove "excel-to-csv"
     "image-converter": ConversionTools,
     "json-formatter": FormatTools,
     "markdown-formatter": FormatTools,

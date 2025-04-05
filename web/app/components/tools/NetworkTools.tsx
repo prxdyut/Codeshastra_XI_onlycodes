@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 // Add LeafletMap component (at the top)
@@ -200,10 +200,8 @@ export default function NetworkTools() {
     const [result, setResult] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const fetchData = async () => {
         setIsLoading(true);
-
         let endpoint = "http://localhost:5000";
         let method = "POST";
         let body = {};
@@ -212,7 +210,6 @@ export default function NetworkTools() {
             case "ip-lookup":
                 endpoint += "/network/ip/public";
                 method = "GET";
-                console.log("Sending request to:", endpoint); // Debug log
                 break;
             case "dns-lookup":
                 endpoint += "/network/dns";
@@ -234,17 +231,21 @@ export default function NetworkTools() {
                 headers: { "Content-Type": "application/json" },
                 body: method === "POST" ? JSON.stringify(body) : undefined,
             });
-            console.log("Response status:", response.status); // Debug log
             const data = await response.json();
-            console.log("Response data:", data); // Debug log
             setResult(data);
         } catch (error) {
-            console.error("Request failed:", error); // Debug log
             setResult({ error: "Failed to process request" });
         } finally {
             setIsLoading(false);
         }
     };
+
+    // Auto-fetch for IP lookup on mount
+    useEffect(() => {
+        if (tool === "ip-lookup") {
+            fetchData();
+        }
+    }, [tool]);
 
     const renderIpLookupResult = (data: any) => {
         if (!data) return null;
@@ -836,66 +837,35 @@ export default function NetworkTools() {
                     .join(" ")}
             </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {tool !== "ip-lookup" && (
-                    <div className="space-y-2">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder={
-                                tool === "ping-test"
-                                    ? "Enter domain name or IP address (e.g., google.com or 8.8.8.8)"
-                                    : "Enter hostname or domain"
-                            }
-                            className="w-full p-2 border rounded"
-                        />
-                        {tool === "ping-test" && (
-                            <p className="text-sm text-gray-500">
-                                Examples: google.com, 8.8.8.8, amazon.com
-                            </p>
-                        )}
-                    </div>
-                )}
-                <button
-                    type="submit"
-                    disabled={
-                        isLoading || (tool !== "ip-lookup" && !input.trim())
-                    }
-                    className={`px-4 py-2 bg-[#78A083] text-white rounded hover:bg-[#6a8f74] 
-                              disabled:opacity-50 disabled:cursor-not-allowed
-                              transition-all duration-200`}
+            {tool !== "ip-lookup" ? (
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        fetchData();
+                    }}
+                    className="space-y-4"
                 >
-                    {isLoading ? (
-                        <span className="flex items-center gap-2">
-                            <svg
-                                className="animate-spin h-4 w-4"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                    fill="none"
-                                />
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                            </svg>
-                            Loading...
-                        </span>
-                    ) : tool === "ip-lookup" ? (
-                        "Check IP"
-                    ) : (
-                        "Submit"
-                    )}
-                </button>
-            </form>
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder={
+                            tool === "ping-test"
+                                ? "Enter domain name or IP address (e.g., google.com or 8.8.8.8)"
+                                : "Enter hostname or domain"
+                        }
+                        className="w-full p-2 border rounded"
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading || !input.trim()}
+                        className="px-4 py-2 bg-[#78A083] text-white rounded hover:bg-[#6a8f74] 
+                                 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                        {isLoading ? "Loading..." : "Submit"}
+                    </button>
+                </form>
+            ) : null}
 
             {isLoading && tool === "ip-lookup" ? (
                 <LoadingSkeleton />

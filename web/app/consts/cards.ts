@@ -59,7 +59,7 @@ export const TOOL_CATEGORIES = [
     },
     {
         title: "Conversion Tools",
-        tools: ["CSV to Excel", "Excel to CSV", "Image Converter"],
+        tools: ["CSV-Excel Editor", "Image Converter"],
     },
     {
         title: "Format Tools",

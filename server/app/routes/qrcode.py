@@ -1,14 +1,12 @@
-from flask import request, jsonify
-from app.tools.qrcode import generate_qr_code
+from flask import send_file, request
+from app.tools.qrcode import generate_qrcode_image
 
 def register(app):
-    @app.route("/api/qr-generator", methods=["POST"])
-    def qr_generator():
-        data = request.get_json()
-        if not data or "text" not in data:
-            return jsonify({"error": "Missing 'text' field"}), 400
-        
-        box_size = data.get("box_size", 10)
-        border = data.get("border", 4)
-        qr_image = generate_qr_code(data["text"], box_size, border)
-        return jsonify({"qr_code": qr_image})
+    @app.route("/api/generate-qrcode", methods=["GET"])
+    def generate_qrcode_endpoint():
+        text = request.args.get("text")
+        if not text:
+            return {"error": "Missing text parameter"}, 400
+
+        img_io = generate_qrcode_image(text)
+        return send_file(img_io, mimetype='image/png', as_attachment=False, download_name="qrcode.png")
