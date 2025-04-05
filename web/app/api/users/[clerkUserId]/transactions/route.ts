@@ -5,9 +5,9 @@ import connectDB from '@/app/lib/mongoose';
 
 export async function GET(request: Request, { params }: { params: { clerkUserId: string } }) {
   await connectDB();
-  
+  const clerkUserId = (await params).clerkUserId;
   try {
-    const user = await User.findOne({ clerkUserId: params.clerkUserId });
+    const user = await User.findOne({ clerkUserId: clerkUserId });
     
     if (!user) {
       return NextResponse.json({ transactions: [] });

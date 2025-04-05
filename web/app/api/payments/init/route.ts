@@ -6,9 +6,13 @@ import { User } from '@/app/models/User';
 import connectDB from '@/app/lib/mongoose';
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
+  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
+export async function GET(request: Request) {
+  return NextResponse.json({status: 'ok'});
+}
 
 export async function POST(request: Request) {
   await connectDB();
@@ -19,13 +23,13 @@ export async function POST(request: Request) {
   try {
     let user = await User.findOne({ clerkUserId });
     if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
     const options = {
       amount: amount.toString(),
       currency: 'INR',
-      receipt: `credits_${clerkUserId}_${Date.now()}`,
+      receipt: `credits_${Date.now()}`,
       notes: {
         clerkUserId,
         credits,
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
       amount: amount / 100,
       creditsPurchased: credits,
       razorpayOrderId: order.id,
-      status: 'created'
+      status: 'pending'
     });
     await transaction.save();
     
@@ -49,6 +53,7 @@ export async function POST(request: Request) {
       amount: order.amount,
     });
   } catch (err: any) {
+    console.log(err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

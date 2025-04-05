@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   clerkUserId: { type: String, required: true, unique: true },
-  credits: { type: Number, default: 0 },
+  credits: { type: Number, default: 25 },
   createdAt: { type: Date, default: Date.now },
 });
 

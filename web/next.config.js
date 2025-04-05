@@ -7,6 +7,7 @@ const nextConfig = {
         port: '',        
       },],
   },
+  allowedDevOrigins: ["codeshastra.pradyutdas.in"]
 };
 
 module.exports = nextConfig;
