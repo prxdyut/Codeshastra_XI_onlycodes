@@ -6,7 +6,6 @@ const chainTool = new ChainTool(process.env.GROQ_API_KEY || '');
 export async function POST(req: NextRequest) {
     try {
         const { prompt, context = '', action, step, currentAnswer, nextQuestion } = await req.json();
-        console.log('Received request:', { prompt, context, action, step, currentAnswer, nextQuestion });
         if (!action) {
             return NextResponse.json(
                 { error: 'Action is required' },

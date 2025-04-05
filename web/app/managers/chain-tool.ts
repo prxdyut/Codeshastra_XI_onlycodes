@@ -195,7 +195,7 @@ Guidelines:
 - tools array should list required tools for automation
 - substeps is optional and only included when needed
 - Focus on WHAT needs to be done, not HOW
-- Maximum 1 steps only
+- Maximum 10 steps only
 - Once steps are generated, they should not be regenerated
 ]`;
 
@@ -244,17 +244,18 @@ Guidelines:
     }
 
     async processStep(step: any, context: string): Promise<StepResult> {
-        console.log(this.contextData)
+        console.log("context", context)
+        console.log("step", step)
+        console.log("this.contextData", this.contextData)
         const systemPrompt = `You are an AI assistant that helps execute steps in a process.
 Available tools and their arguments:
 ${JSON.stringify(this.tools, null, 2)}
 
 Context:
-Original Prompt: ${this.contextData.originalPrompt}
 Current Step: ${this.contextData.currentStep + 1} of ${this.contextData.totalSteps}
-Previous Human Inputs: ${JSON.stringify(this.contextData.humanInputs)}
-Previous Tool Outputs: ${JSON.stringify(this.contextData.toolOutputs)}
-Previous Conversations: ${context}
+Conversation History: ${context}
+Dont ask the same question again and again.
+First check if the answer is already in the conversation history.
 
 Current step to process:
 ${JSON.stringify(step, null, 2)}
