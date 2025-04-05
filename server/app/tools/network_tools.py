@@ -8,12 +8,12 @@ import dns.resolver
 # ------------------------------
 # 🔹 IP Address Utilities
 # ------------------------------
-def get_public_ip():
-    try:
-        ip = requests.get('https://api.ipify.org').text
-        return { "public_ip": ip }
-    except Exception as e:
-        return { "error": str(e) }
+# def get_public_ip():
+#     try:
+#         ip = requests.get('https://api.ipify.org').text
+#         return { "public_ip": ip }
+#     except Exception as e:
+#         return { "error": str(e) }
 
 def resolve_hostname(domain):
     try:
@@ -60,10 +60,10 @@ def ping(host, count=4):
 # ------------------------------
 # 🔹 Traceroute
 # ------------------------------
-def traceroute(host):
-    command = "tracert" if platform.system().lower() == "windows" else "traceroute"
-    try:
-        result = subprocess.check_output([command, host], stderr=subprocess.STDOUT, text=True)
-        return { "host": host, "result": result }
-    except subprocess.CalledProcessError as e:
-        return { "error": e.output }
+# def traceroute(host):
+#     command = "tracert" if platform.system().lower() == "windows" else "traceroute"
+#     try:
+#         result = subprocess.check_output([command, host], stderr=subprocess.STDOUT, text=True)
+#         return { "host": host, "result": result }
+#     except subprocess.CalledProcessError as e:
+#         return { "error": e.output }

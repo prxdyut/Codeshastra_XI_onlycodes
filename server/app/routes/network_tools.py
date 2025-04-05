@@ -3,9 +3,9 @@ from app.tools import network_tools
 
 def register(app):
     # 📍 GET Public IP
-    @app.route('/network/ip/public', methods=['GET'])
-    def public_ip():
-        return jsonify(network_tools.get_public_ip())
+    # @app.route('/network/ip/public', methods=['GET'])
+    # def public_ip():
+    #     return jsonify(network_tools.get_public_ip())
 
     # 📍 POST: Resolve Domain to IP
     @app.route('/network/ip/resolve', methods=['POST'])
