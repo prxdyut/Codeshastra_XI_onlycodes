@@ -14,5 +14,5 @@ def register(app):
     def redirect_to_url(short_code):
         original = resolve_url(short_code)
         if original:
-            return redirect(original)
+            return redirect(original)   
         return jsonify({"error": "Short link not found"}), 404
