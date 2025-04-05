@@ -1,13 +1,25 @@
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Navbar() {
     return (
         <nav className="sticky top-0 z-50 bg-white border-b border-[#E0E6E3]">
             <div className="container mx-auto px-6">
                 <div className="flex h-16 items-center justify-between">
-                    <div className="font-bold text-xl text-[#2D3A3A]">
-                        DevTools Hub
+                    <div className="flex items-center gap-2">
+                        <Image
+                            src="/logo.png"
+                            alt="Logo"
+                            width={36}
+                            height={36}
+                        />
+                        <Link
+                            href="/"
+                            className="font-bold text-xl text-[#2D3A3A] hover:text-[#78A083]"
+                        >
+                            ZeMode
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -30,6 +42,7 @@ export function Navbar() {
                         >
                             Pricing
                         </Link>
+
                         <UserButton
                             afterSignOutUrl="/"
                             appearance={{

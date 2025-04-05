@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { TypeAnimation } from "react-type-animation";
 
 // Placeholder images - replace with actual images for your platform
-import logo from "./images/logo.png";
+import logo from "../public/logo.png";
 import heroImage from "./images/hero-image.png";
 import toolsImage from "./images/tools-showcase.png";
 import creditSystem from "./images/credit-system.png";
@@ -164,7 +164,7 @@ const PRICING_PLANS = [
     },
     {
         title: "Pro",
-        price: "9.99",
+        price: "799",
         period: "monthly",
         features: [
             "25 daily credits",
@@ -179,7 +179,7 @@ const PRICING_PLANS = [
     },
     {
         title: "Enterprise",
-        price: "29.99",
+        price: "2499",
         period: "monthly",
         features: [
             "Unlimited credits",
@@ -208,11 +208,11 @@ export default function Home() {
                             <Image
                                 src={logo}
                                 alt="Logo"
-                                width={36}
-                                height={36}
+                                width={40}
+                                height={40}
                             />
                             <span className="font-bold text-xl text-[#131316]">
-                                ZenTools
+                                ZeMode
                             </span>
                         </div>
                         <div className="flex gap-6 items-center">
@@ -279,8 +279,24 @@ export default function Home() {
             </nav>
 
             {/* Hero Section */}
-            <div className="min-h-screen flex items-center pt-24 border-b border-[#E0E6E3]">
-                <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+            <div className="min-h-screen flex items-center pt-24 border-b border-[#E0E6E3] relative overflow-hidden">
+                {/* Grid Background Pattern */}
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#78A083]/10 to-transparent">
+                        <div className="h-full w-full grid grid-cols-12 grid-rows-6 gap-4 opacity-20">
+                            {[...Array(72)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="border border-[#78A083]"
+                                ></div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#F5F9F3] via-transparent to-transparent"></div>
+                </div>
+
+                {/* Content */}
+                <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
                     <div className="md:w-1/2">
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-[#2D3A3A] mb-6">
                             <TypeAnimation
@@ -607,9 +623,60 @@ export default function Home() {
                                 <h3 className="font-bold text-xl mb-6 text-[#2D3A3A]">
                                     Unlock Premium Features
                                 </h3>
-                                <div className="grid gap-4">
-                                    {/* Feature cards */}
-                                    {/* ...existing premium feature cards... */}
+                                <div className="space-y-4">
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E0E6E3]">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                ⚡
+                                            </div>
+                                            <h4 className="font-semibold">
+                                                Priority Processing
+                                            </h4>
+                                        </div>
+                                        <p className="text-sm text-[#5E5F6E]">
+                                            Skip the queue with faster
+                                            processing times for all your tasks
+                                        </p>
+                                        <div className="mt-3 text-xs font-medium text-blue-600">
+                                            10 credits to unlock
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E0E6E3]">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                                💾
+                                            </div>
+                                            <h4 className="font-semibold">
+                                                Save Configurations
+                                            </h4>
+                                        </div>
+                                        <p className="text-sm text-[#5E5F6E]">
+                                            Store your favorite tool settings
+                                            and templates for quick access
+                                        </p>
+                                        <div className="mt-3 text-xs font-medium text-purple-600">
+                                            15 credits to unlock
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E0E6E3]">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                🔄
+                                            </div>
+                                            <h4 className="font-semibold">
+                                                Batch Processing
+                                            </h4>
+                                        </div>
+                                        <p className="text-sm text-[#5E5F6E]">
+                                            Process multiple files or tasks
+                                            simultaneously
+                                        </p>
+                                        <div className="mt-3 text-xs font-medium text-green-600">
+                                            20 credits to unlock
+                                        </div>
+                                    </div>
                                 </div>
                                 <Link href="/pricing" className="mt-6 block">
                                     <button className="w-full py-3 px-4 rounded-lg bg-[#2D3A3A] text-white font-medium hover:bg-[#78A083] transition-colors">
@@ -657,7 +724,7 @@ export default function Home() {
                             </h3>
                             <div className="mb-4">
                                 <span className="text-3xl font-bold">
-                                    ${plan.price}
+                                    ₹{plan.price}
                                 </span>
                                 {plan.period && (
                                     <span className="text-sm text-gray-600">

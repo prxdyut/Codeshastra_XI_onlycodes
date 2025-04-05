@@ -74,6 +74,7 @@ export default function CreditsDashboard() {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
+              clerkUserId: clerkUser?.id,
             }),
           });
           
@@ -93,6 +94,7 @@ export default function CreditsDashboard() {
         throw new Error('Razorpay key is not configured');
       }
       
+      // @ts-ignore
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
