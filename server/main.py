@@ -6,7 +6,7 @@ from flask import Flask
 from flask_cors import CORS
 
 # Now import from app.routes
-from routes import json_formatter, password_tools ,network_tools , csv_excel, random_tools
+from routes import json_formatter, password_tools ,network_tools , csv_excel, random_tools , code_formatting
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +17,7 @@ network_tools.register(app)
 json_formatter.register(app)
 csv_excel.register(app)
 random_tools.register(app)
+code_formatting.register(app)
 
 @app.route('/')
 def home():
