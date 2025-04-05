@@ -101,8 +101,12 @@ export default function DashboardPage() {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h2 className="text-lg font-semibold mb-1">Daily Credits</h2>
-                            <p className="text-sm text-[#5E5F6E]">15 of 25 credits remaining</p>
+                            <h2 className="text-lg font-semibold mb-1">
+                                Daily Credits
+                            </h2>
+                            <p className="text-sm text-[#5E5F6E]">
+                                15 of 25 credits remaining
+                            </p>
                         </div>
                         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
                             Pro Plan
@@ -111,7 +115,9 @@ export default function DashboardPage() {
                     <div className="w-full bg-[#F5F9F3] rounded-full h-2.5 mb-2">
                         <div className="bg-[#78A083] h-2.5 rounded-full w-3/5"></div>
                     </div>
-                    <p className="text-xs text-[#5E5F6E]">Daily limit resets at midnight (25 credits/day)</p>
+                    <p className="text-xs text-[#5E5F6E]">
+                        Daily limit resets at midnight (25 credits/day)
+                    </p>
                 </div>
 
                 {/* Tool Usage Summary */}
@@ -127,9 +133,7 @@ export default function DashboardPage() {
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-lg bg-[#F5F9F3] flex items-center justify-center">
-                                        <span className="text-xl">
-                                            🛠️
-                                        </span>
+                                        <span className="text-xl">🛠️</span>
                                     </div>
                                     <div>
                                         <p className="font-medium">
@@ -173,18 +177,14 @@ export default function DashboardPage() {
 
             {/* Right Column - AI Tool Finder */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3] h-fit">
-                <h2 className="text-lg font-semibold mb-4">
-                    AI Tool Finder
-                </h2>
+                <h2 className="text-lg font-semibold mb-4">AI Tool Finder</h2>
                 <div className="space-y-4">
                     <div className="bg-[#F5F9F3] rounded-lg p-4">
                         <div className="flex items-center gap-2 mb-3">
                             <div className="w-8 h-8 rounded-full bg-[#78A083] flex items-center justify-center text-white">
                                 AI
                             </div>
-                            <p className="text-sm">
-                                How can I help you today?
-                            </p>
+                            <p className="text-sm">How can I help you today?</p>
                         </div>
                         <textarea
                             className="w-full p-3 rounded-lg border border-[#E0E6E3] text-sm"
@@ -197,23 +197,19 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="border-t border-[#E0E6E3] pt-4"></div>
-                        <h3 className="text-sm font-medium mb-2">
-                            Suggested Tools
-                        </h3>
-                        <div className="space-y-2">
-                            {TOOL_CATEGORIES[0].tools
-                                .slice(0, 3)
-                                .map((tool) => (
-                                    <div
-                                        key={tool}
-                                        className="flex items-center gap-2 text-sm p-2 hover:bg-[#F5F9F3] rounded-lg cursor-pointer"
-                                    >
-                                        <span className="text-[#78A083]">
-                                            •
-                                        </span>
-                                        {tool}
-                                    </div>
-                                ))}
+                    <h3 className="text-sm font-medium mb-2">
+                        Suggested Tools
+                    </h3>
+                    <div className="space-y-2">
+                        {TOOL_CATEGORIES[0].tools.slice(0, 3).map((tool) => (
+                            <div
+                                key={tool}
+                                className="flex items-center gap-2 text-sm p-2 hover:bg-[#F5F9F3] rounded-lg cursor-pointer"
+                            >
+                                <span className="text-[#78A083]">•</span>
+                                {tool}
+                            </div>
+                        ))}
                         {/* </div> */}
                     </div>
                 </div>

@@ -103,10 +103,11 @@ export default function ConversionTools() {
 
         setState((prev) => ({ ...prev, loading: true, error: null }));
         try {
-            const endpoint = tool === "image-converter" 
-                ? "http://localhost:5000/api/convert-image"
-                : "http://localhost:5000/api/excel-to-csv";
-                
+            const endpoint =
+                tool === "image-converter"
+                    ? "http://localhost:5000/api/convert-image"
+                    : "http://localhost:5000/api/excel-to-csv";
+
             const response = await fetch(endpoint, {
                 method: "POST",
                 body: formData,
@@ -125,9 +126,9 @@ export default function ConversionTools() {
                 throw new Error(data.error);
             }
         } catch (error) {
-            setState((prev) => ({ 
-                ...prev, 
-                error: "Failed to process file" 
+            setState((prev) => ({
+                ...prev,
+                error: "Failed to process file",
             }));
         } finally {
             setState((prev) => ({ ...prev, loading: false }));

@@ -51,7 +51,10 @@ export default function UtilityTools() {
         try {
             const response = await fetch(endpoint, {
                 method,
-                headers: method === "POST" ? { "Content-Type": "application/json" } : undefined,
+                headers:
+                    method === "POST"
+                        ? { "Content-Type": "application/json" }
+                        : undefined,
                 body: method === "POST" ? JSON.stringify(body) : undefined,
             });
 
@@ -91,12 +94,12 @@ export default function UtilityTools() {
             case "qr-generator":
                 return (
                     <div className="flex flex-col items-center gap-4">
-                        <img 
-                            src={result} 
+                        <img
+                            src={result}
                             alt="Generated QR Code"
-                            className="max-w-[300px] border rounded p-2" 
+                            className="max-w-[300px] border rounded p-2"
                         />
-                        <a 
+                        <a
                             href={result}
                             download="qrcode.png"
                             className="text-blue-500 hover:underline text-sm"
@@ -105,13 +108,15 @@ export default function UtilityTools() {
                         </a>
                     </div>
                 );
-            
+
             case "password-generator":
                 return (
                     <div className="flex items-center gap-2 p-4 bg-gray-50 rounded border">
                         <span className="font-mono">{result.password}</span>
                         <button
-                            onClick={() => navigator.clipboard.writeText(result.password)}
+                            onClick={() =>
+                                navigator.clipboard.writeText(result.password)
+                            }
                             className="text-xs text-blue-500 hover:underline"
                         >
                             Copy
@@ -123,7 +128,7 @@ export default function UtilityTools() {
                 return (
                     <div className="p-4 bg-gray-50 rounded border">
                         <p className="font-medium mb-2">Shortened URL:</p>
-                        <a 
+                        <a
                             href={result.short_url}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -146,7 +151,10 @@ export default function UtilityTools() {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">
-                {tool?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                {tool
+                    ?.split("-")
+                    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                    .join(" ")}
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -181,9 +189,7 @@ export default function UtilityTools() {
                     <div className="border-b bg-gray-50 p-2">
                         <span className="text-sm font-medium">Result</span>
                     </div>
-                    <div className="p-4">
-                        {renderResult()}
-                    </div>
+                    <div className="p-4">{renderResult()}</div>
                 </div>
             )}
         </div>

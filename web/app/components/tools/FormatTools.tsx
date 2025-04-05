@@ -13,12 +13,18 @@ export default function FormatTools() {
 
     const getEndpoint = () => {
         switch (tool) {
-            case "json-formatter": return "/json/format";
-            case "markdown-formatter": return "/api/format-markdown";
-            case "yaml-formatter": return "/api/format-yaml";
-            case "xml-formatter": return "/api/format-xml";
-            case "toml-formatter": return "/api/format-toml";
-            default: return "";
+            case "json-formatter":
+                return "/json/format";
+            case "markdown-formatter":
+                return "/api/format-markdown";
+            case "yaml-formatter":
+                return "/api/format-yaml";
+            case "xml-formatter":
+                return "/api/format-xml";
+            case "toml-formatter":
+                return "/api/format-toml";
+            default:
+                return "";
         }
     };
 
@@ -28,11 +34,14 @@ export default function FormatTools() {
         setError(null);
 
         try {
-            const response = await fetch(`http://localhost:5000${getEndpoint()}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: input }),
-            });
+            const response = await fetch(
+                `http://localhost:5000${getEndpoint()}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: input }),
+                }
+            );
             const data = await response.json();
             if (!data.success) {
                 throw new Error(data.error || "Failed to format");
@@ -46,7 +55,8 @@ export default function FormatTools() {
     };
 
     const getTitle = () => {
-        return tool?.split("-")
+        return tool
+            ?.split("-")
             .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
             .join(" ");
     };
@@ -54,7 +64,7 @@ export default function FormatTools() {
     return (
         <div className="space-y-4">
             <h1 className="text-2xl font-bold">{getTitle()}</h1>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <textarea
                     value={input}
@@ -63,7 +73,7 @@ export default function FormatTools() {
                     className="w-full h-60 p-4 border rounded font-mono text-sm"
                     required
                 />
-                
+
                 <button
                     type="submit"
                     disabled={loading || !input.trim()}
@@ -84,9 +94,13 @@ export default function FormatTools() {
             {result && (
                 <div className="border rounded-lg">
                     <div className="border-b bg-gray-50 p-2 flex justify-between items-center">
-                        <span className="text-sm font-medium">Formatted Result</span>
+                        <span className="text-sm font-medium">
+                            Formatted Result
+                        </span>
                         <button
-                            onClick={() => navigator.clipboard.writeText(result)}
+                            onClick={() =>
+                                navigator.clipboard.writeText(result)
+                            }
                             className="text-xs text-gray-500 hover:text-gray-700"
                         >
                             Copy to Clipboard

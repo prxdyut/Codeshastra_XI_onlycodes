@@ -50,12 +50,20 @@ export function Sidebar() {
                                     {category.tools.map((tool, index) => (
                                         <Link
                                             key={tool}
-                                            href={`/dashboard/tools/${category.routes?.[index] || 
-                                                tool.toLowerCase().replace(/\s+/g, "-")}`}
+                                            href={`/dashboard/tools/${
+                                                category.routes?.[index] ||
+                                                tool
+                                                    .toLowerCase()
+                                                    .replace(/\s+/g, "-")
+                                            }`}
                                             className={`block text-sm py-1 px-2 rounded-lg ${
                                                 pathname ===
-                                                `/dashboard/tools/${category.routes?.[index] || 
-                                                    tool.toLowerCase().replace(/\s+/g, "-")}`
+                                                `/dashboard/tools/${
+                                                    category.routes?.[index] ||
+                                                    tool
+                                                        .toLowerCase()
+                                                        .replace(/\s+/g, "-")
+                                                }`
                                                     ? "bg-[#F5F9F3] text-[#78A083]"
                                                     : "text-[#5E5F6E] hover:bg-[#F5F9F3]"
                                             }`}
