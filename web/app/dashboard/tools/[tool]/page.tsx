@@ -40,6 +40,9 @@ const toolComponents: Record<string, React.ComponentType> = {
     "password-generator": UtilityTools,
     "url-shortener": UtilityTools,
     "api-tester": UtilityTools,
+    "currency-converter": UtilityTools,
+    "time-converter": UtilityTools,
+    "email-lookup": UtilityTools,
 };
 
 export default function ToolPage({

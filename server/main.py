@@ -2,12 +2,18 @@ import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "app"))
 
-
 from flask import Flask
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+# Update CORS configuration to allow all origins and methods
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # Update imports to be more resilient
 imports = [

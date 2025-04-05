@@ -30,18 +30,12 @@ export function Navbar() {
                                 </p>
                             </div>
                             <Link
-                                href="/test"
+                                href="/credits"
                                 className="px-4 py-2 bg-[#78A083] text-white rounded-lg text-sm hover:bg-[#2D3A3A] transition-colors"
                             >
                                 Add Credits
                             </Link>
                         </div>
-                        <Link
-                            href="/pricing"
-                            className="text-sm text-[#5E5F6E] hover:text-[#2D3A3A]"
-                        >
-                            Pricing
-                        </Link>
 
                         <UserButton
                             afterSignOutUrl="/"
