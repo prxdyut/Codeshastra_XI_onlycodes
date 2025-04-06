@@ -1,6 +1,8 @@
 "use client";
 import { useState, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 
 interface ConversionState {
     mode: "csv-to-excel" | "excel-to-csv" | "image-resizer";
@@ -15,6 +17,7 @@ interface ConversionState {
 }
 
 export default function ConversionTools() {
+    const { deductCredits, isProcessing } = useToolCredits();
     const pathname = usePathname();
     const tool = pathname.split("/").pop();
     const [state, setState] = useState<ConversionState>({
@@ -95,6 +98,9 @@ export default function ConversionTools() {
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
+            // First try to deduct credits
+            await deductCredits();
+
             const formData = new FormData();
             if (!state.file) throw new Error("No file selected");
             formData.append("file", state.file);
@@ -148,7 +154,11 @@ export default function ConversionTools() {
                     ? "converted.xlsx"
                     : "converted.csv";
             a.click();
-        } catch (error) {
+        } catch (error: any) {
+            if (error.message === "Insufficient credits") {
+                toast.error("You do not have enough credits to use this tool");
+                return;
+            }
             setState((prev) => ({
                 ...prev,
                 error:

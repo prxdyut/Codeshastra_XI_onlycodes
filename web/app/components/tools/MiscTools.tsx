@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 
 interface CurrencyConfig {
     amount: string;
@@ -49,6 +51,8 @@ export default function MiscTools() {
         "INR",
     ]);
 
+    const { deductCredits, isProcessing } = useToolCredits();
+
     // Effects
     useEffect(() => {
         if (tool === "time-converter") {
@@ -75,42 +79,55 @@ export default function MiscTools() {
         setLoading(true);
         setError(null);
 
-        let endpoint = "http://localhost:5000";
-        let method = "POST";
-        let body: any = {};
-
-        switch (tool) {
-            case "currency-converter":
-                endpoint += "/api/currency-convert";
-                body = {
-                    amount: parseFloat(currencyConfig.amount),
-                    from: currencyConfig.fromCurrency,
-                    to: currencyConfig.toCurrency,
-                };
-                break;
-            case "time-converter":
-                endpoint += "/api/convert-timezone";
-                body = {
-                    time: timeConfig.time,
-                    from_timezone: timeConfig.fromTimezone,
-                    to_timezone: timeConfig.toTimezone,
-                };
-                break;
-            case "email-lookup":
-                endpoint += "/api/lookup/email";
-                body = { email: input };
-                break;
-        }
-
         try {
-            const response = await fetch(endpoint, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-            const data = await response.json();
-            setResult(data);
+            // First try to deduct credits
+            await deductCredits();
+
+            let endpoint = "http://localhost:5000";
+            let method = "POST";
+            let body: any = {};
+
+            switch (tool) {
+                case "currency-converter":
+                    endpoint += "/api/currency-convert";
+                    body = {
+                        amount: parseFloat(currencyConfig.amount),
+                        from: currencyConfig.fromCurrency,
+                        to: currencyConfig.toCurrency,
+                    };
+                    break;
+                case "time-converter":
+                    endpoint += "/api/convert-timezone";
+                    body = {
+                        time: timeConfig.time,
+                        from_timezone: timeConfig.fromTimezone,
+                        to_timezone: timeConfig.toTimezone,
+                    };
+                    break;
+                case "email-lookup":
+                    endpoint += "/api/lookup/email";
+                    body = { email: input };
+                    break;
+            }
+
+            try {
+                const response = await fetch(endpoint, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+                const data = await response.json();
+                setResult(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
         } catch (err: any) {
+            if (err.message === "Insufficient credits") {
+                toast.error("You do not have enough credits to use this tool");
+                return;
+            }
             setError(err.message);
         } finally {
             setLoading(false);

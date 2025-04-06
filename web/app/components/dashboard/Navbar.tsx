@@ -1,8 +1,21 @@
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
+    const { user: clerkUser } = useUser();
+    const [credits, setCredits] = useState(0);
+
+    useEffect(() => {
+        if (clerkUser) {
+            fetch(`/api/users/${clerkUser?.id}/credits`)
+                .then((res) => res.json())
+                .then((data) => setCredits(data.credits))
+                .catch((err) => console.error("Error fetching credits:", err));
+        }
+    }, [clerkUser]);
+
     return (
         <nav className="sticky top-0 z-50 bg-white border-b border-[#E0E6E3]">
             <div className="container mx-auto px-6">
@@ -26,7 +39,7 @@ export function Navbar() {
                         <div className="flex items-center gap-3">
                             <div className="text-right bg-gray-100 px-4 rounded-xl">
                                 <p className="inline-block m-2 font-semibold">
-                                    &#8377;4500
+                                    {credits} credits
                                 </p>
                             </div>
                             <Link

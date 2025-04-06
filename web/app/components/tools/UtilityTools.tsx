@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 
 interface ApiTestConfig {
     url: string;
@@ -19,6 +21,7 @@ interface ApiTestConfig {
 export default function UtilityTools() {
     const pathname = usePathname();
     const tool = pathname.split("/").pop();
+    const { deductCredits, isProcessing } = useToolCredits();
     const [input, setInput] = useState("");
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
@@ -43,6 +46,9 @@ export default function UtilityTools() {
         setError(null);
 
         try {
+            // First try to deduct credits
+            await deductCredits();
+
             let endpoint = "http://localhost:5000";
             let requestOptions: RequestInit = {
                 method: "GET",
@@ -121,6 +127,10 @@ export default function UtilityTools() {
             const data = await response.json();
             setResult(data);
         } catch (err: any) {
+            if (err.message === "Insufficient credits") {
+                toast.error("You do not have enough credits to use this tool");
+                return;
+            }
             setError(err.message);
         } finally {
             setLoading(false);

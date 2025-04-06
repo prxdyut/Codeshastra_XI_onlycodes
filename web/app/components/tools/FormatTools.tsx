@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 
 export default function FormatTools() {
     const pathname = usePathname();
@@ -10,6 +12,7 @@ export default function FormatTools() {
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { deductCredits, isProcessing } = useToolCredits();
 
     const getEndpoint = () => {
         switch (tool) {
@@ -34,6 +37,9 @@ export default function FormatTools() {
         setError(null);
 
         try {
+            // First try to deduct credits
+            await deductCredits();
+
             const response = await fetch(
                 `http://localhost:5000${getEndpoint()}`,
                 {
@@ -48,6 +54,10 @@ export default function FormatTools() {
             }
             setResult(data.formatted || data.html);
         } catch (err: any) {
+            if (err.message === "Insufficient credits") {
+                toast.error("You do not have enough credits to use this tool");
+                return;
+            }
             setError(err.message);
         } finally {
             setLoading(false);

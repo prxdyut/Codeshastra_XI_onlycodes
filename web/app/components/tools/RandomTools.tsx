@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Add these types at the top of the file
@@ -108,29 +110,41 @@ export default function RandomTools() {
     const [result, setResult] = useState<ResultType | null>(null);
     const [minValue, setMinValue] = useState(0);
     const [maxValue, setMaxValue] = useState(100);
+    const { deductCredits, isProcessing } = useToolCredits();
 
     const generateRandom = async () => {
-        let endpoint = "http://localhost:5000";
-        switch (tool) {
-            case "random-number":
-                endpoint += `/random/number?min=${minValue}&max=${maxValue}`;
-                break;
-            case "uuid-generator":
-                endpoint += "/random/uuid/v4";
-                break;
-            case "dice-roll":
-                endpoint += "/random/dice";
-                break;
-            case "coin-flip":
-                endpoint += "/random/coin";
-                break;
-        }
-
         try {
-            const response = await fetch(endpoint);
-            const data = await response.json();
-            setResult(data);
-        } catch (error) {
+            // First try to deduct credits
+            await deductCredits();
+
+            let endpoint = "http://localhost:5000";
+            switch (tool) {
+                case "random-number":
+                    endpoint += `/random/number?min=${minValue}&max=${maxValue}`;
+                    break;
+                case "uuid-generator":
+                    endpoint += "/random/uuid/v4";
+                    break;
+                case "dice-roll":
+                    endpoint += "/random/dice";
+                    break;
+                case "coin-flip":
+                    endpoint += "/random/coin";
+                    break;
+            }
+
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                setResult(data);
+            } catch (error) {
+                setResult({ error: "Failed to generate" });
+            }
+        } catch (error: any) {
+            if (error.message === "Insufficient credits") {
+                toast.error("You do not have enough credits to use this tool");
+                return;
+            }
             setResult({ error: "Failed to generate" });
         }
     };

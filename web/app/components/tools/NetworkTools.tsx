@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 
 // Add LeafletMap component (at the top)
 const IpLocationMap = ({ lat, lng }: { lat: number; lng: number }) => {
@@ -196,6 +198,7 @@ const renderTracerouteResult = (data: any) => {
 export default function NetworkTools() {
     const pathname = usePathname();
     const tool = pathname.split("/").pop();
+    const { deductCredits, isProcessing } = useToolCredits();
 
     // Group all state hooks together
     const [input, setInput] = useState("");
@@ -206,30 +209,33 @@ export default function NetworkTools() {
     // Define fetchData before using it in useEffect
     const fetchData = async () => {
         setIsLoading(true);
-        let endpoint = "http://localhost:5000";
-        let method = "POST";
-        let body = {};
-
-        switch (tool) {
-            case "ip-lookup":
-                endpoint += "/network/ip/public";
-                method = "GET";
-                break;
-            case "dns-lookup":
-                endpoint += "/network/dns";
-                body = { domain: input, type: "A" };
-                break;
-            case "ping-test":
-                endpoint += "/network/ping";
-                body = { host: input, count: 4 };
-                break;
-            case "traceroute":
-                endpoint += "/network/traceroute";
-                body = { host: input };
-                break;
-        }
-
         try {
+            // First try to deduct credits
+            await deductCredits();
+
+            let endpoint = "http://localhost:5000";
+            let method = "POST";
+            let body = {};
+
+            switch (tool) {
+                case "ip-lookup":
+                    endpoint += "/network/ip/public";
+                    method = "GET";
+                    break;
+                case "dns-lookup":
+                    endpoint += "/network/dns";
+                    body = { domain: input, type: "A" };
+                    break;
+                case "ping-test":
+                    endpoint += "/network/ping";
+                    body = { host: input, count: 4 };
+                    break;
+                case "traceroute":
+                    endpoint += "/network/traceroute";
+                    body = { host: input };
+                    break;
+            }
+
             const response = await fetch(endpoint, {
                 method,
                 headers: { "Content-Type": "application/json" },
@@ -237,7 +243,11 @@ export default function NetworkTools() {
             });
             const data = await response.json();
             setResult(data);
-        } catch (error) {
+        } catch (error: any) {
+            if (error.message === "Insufficient credits") {
+                toast.error("You do not have enough credits to use this tool");
+                return;
+            }
             setResult({ error: "Failed to process request" });
         } finally {
             setIsLoading(false);
