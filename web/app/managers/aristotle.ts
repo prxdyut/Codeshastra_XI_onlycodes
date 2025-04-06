@@ -714,7 +714,7 @@ Response Format:
                 requiredArgs: currentTool.arguments.filter(arg => arg.required).map(arg => arg.label)
             });
 
-            
+
             if (i > 0) {
                 console.log('\n🤖 Attempting to generate arguments using LLM');
                 const previousResult = results[i - 1].result;
@@ -745,67 +745,67 @@ Response Format:
                 switch (toolCall.tool) {
                     case 'dns_lookup':
                         console.log('🔍 Performing DNS lookup...');
-                        result = await this.dnsLookup(toolCall.arguments.domain);
+                        result += await this.dnsLookup(toolCall.arguments.domain);
                         break;
                     case 'ip_lookup':
-                        result = await this.lookupIp(toolCall.arguments.ip, toolCall.arguments.api_key);
+                        result += await this.lookupIp(toolCall.arguments.ip, toolCall.arguments.api_key);
                         break;
                     case 'a_lookup':
-                        result = await this.lookupA(toolCall.arguments.a);
+                        result += await this.lookupA(toolCall.arguments.a);
                         break;
                     case 'traceroute':
-                        result = await this.tracerouteHost(toolCall.arguments.host);
+                        result += await this.tracerouteHost(toolCall.arguments.host);
                         break;
                     case 'ping':
-                        result = await this.pingHost(toolCall.arguments.host, toolCall.arguments.count);
+                        result += await this.pingHost(toolCall.arguments.host, toolCall.arguments.count);
                         break;
                     case 'json_formatter':
-                        result = await this.formatJson(toolCall.arguments.input);
+                        result += await this.formatJson(toolCall.arguments.input);
                         break;
                     case 'markdown_formatter':
-                        result = await this.formatMarkdown(toolCall.arguments.input);
+                        result += await this.formatMarkdown(toolCall.arguments.input);
                         break;
                     case 'yaml_formatter':
-                        result = await this.formatYaml(toolCall.arguments.input);
+                        result += await this.formatYaml(toolCall.arguments.input);
                         break;
                     case 'xml_formatter':
-                        result = await this.formatXml(toolCall.arguments.input);
+                        result += await this.formatXml(toolCall.arguments.input);
                         break;
                     case 'toml_formatter':
-                        result = await this.formatToml(toolCall.arguments.input);
+                        result += await this.formatToml(toolCall.arguments.input);
                         break;
                     case 'currency_converter':
-                        result = await this.convertCurrency(
+                        result += await this.convertCurrency(
                             toolCall.arguments.amount,
                             toolCall.arguments.from,
                             toolCall.arguments.to
                         );
                         break;
                     case 'time_converter':
-                        result = await this.convertTimezone(
+                        result += await this.convertTimezone(
                             toolCall.arguments.time,
                             toolCall.arguments.from_zone,
                             toolCall.arguments.to_zone
                         );
                         break;
                     case 'email_lookup':
-                        result = await this.lookupEmail(toolCall.arguments.email);
+                        result += await this.lookupEmail(toolCall.arguments.email);
                         break;
                     case 'random_number':
-                        result = await this.getRandomNumber(
+                        result += await this.getRandomNumber(
                             toolCall.arguments.min,
                             toolCall.arguments.max,
                             toolCall.arguments.seed
                         );
                         break;
                     case 'uuid_generator':
-                        result = await this.generateUuidV4();
+                        result += await this.generateUuidV4();
                         break;
                     case 'dice_roll':
-                        result = await this.rollDice(toolCall.arguments.notation, toolCall.arguments.seed);
+                        result += await this.rollDice(toolCall.arguments.notation, toolCall.arguments.seed);
                         break;
                     case 'coin_flip':
-                        result = await this.flipCoin(toolCall.arguments.seed);
+                        result += await this.flipCoin(toolCall.arguments.seed);
                         break;
                     default:
                         throw new Error(`Unknown tool: ${toolCall.tool}`);
@@ -841,10 +841,77 @@ Response Format:
             }
         }
 
+        // Format the results as HTML using Groq's DeepSeek
+        const htmlResponse = await this.formatResultsAsHTML(results);
+
+        // Sanitize the HTML response by removing "thinking" content
+        const sanitizedResponse = this.sanitizeHTMLResponse(htmlResponse);
         console.log('\n🏁 Tool sequence execution completed');
         console.log('📊 Final results:', JSON.stringify(results, null, 2));
-        return results;
+        return [sanitizedResponse];
     }
+
+    private async formatResultsAsHTML(results: any[]): Promise<string> {
+        try {
+            const prompt = `
+            Please format the following tool execution results into a clean, well-structured HTML document.
+            The HTML should include:
+            - A title (h1) "Tool Execution Results"
+            - A summary section showing total tools run and success/failure counts
+            - A detailed section for each tool with:
+              * Tool name (h3)
+              * Status (success/failure)
+              * Arguments used
+              * Results or error message
+            - Proper styling with CSS classes for good readability
+            - Responsive design that works on mobile and desktop
+            
+            Here are the results to format:
+            ${JSON.stringify(results, null, 2)}
+            `;
+
+            // Call to Groq's DeepSeek API
+            const response = await this.groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are an expert HTML developer. Generate clean, well-structured HTML5 documents with responsive design."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                model: "deepseek-r1-distill-llama-70b"
+            });
+
+            return response.choices[0]?.message?.content || '<div>Failed to generate HTML response</div>';
+        } catch (error) {
+            console.error('Error formatting HTML response:', error);
+            return '<div>Error generating formatted results</div>';
+        }
+    }
+
+    private sanitizeHTMLResponse(html: string): string {
+        // Extract content between <html> tags
+        const htmlMatch = html.match(/<html>([\s\S]*?)<\/html>/);
+        if (!htmlMatch) {
+            return ''; // Return empty string if no <html> tags found
+        }
+
+        const htmlContent = htmlMatch[1];
+
+        // Remove any "thinking" or internal processing content
+        const sanitized = htmlContent
+            .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
+            .replace(/<reasoning>[\s\S]*?<\/reasoning>/g, '')
+            .replace(/<internal[\s\S]*?<\/internal>/g, '')
+            .replace(/<!--[\s\S]*?-->/g, '');
+
+        // Remove empty paragraphs that might have been left behind
+        return sanitized.replace(/<p>\s*<\/p>/g, '').trim();
+    }
+
 
     private getValueFromPath(obj: any, path: string): any {
         return path.split('.').reduce((current, part) => {

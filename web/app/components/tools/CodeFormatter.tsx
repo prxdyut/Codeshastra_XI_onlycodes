@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useToolCredits } from "@/app/hooks/useToolCredits";
+import { toast } from "react-hot-toast";
 
 const LANGUAGES = [
     { id: "python", label: "Python", aceMode: "python" },
@@ -18,10 +20,16 @@ export default function CodeFormatter() {
     const [language, setLanguage] = useState("python");
     const [result, setResult] = useState("");
     const resultRef = useRef<HTMLDivElement>(null);
+    const { deductCredits, isProcessing } = useToolCredits();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
         try {
+            // First try to deduct credits
+            await deductCredits();
+            
+            // If credit deduction successful, proceed with formatting
             const response = await fetch("http://localhost:5000/code/format", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -44,8 +52,13 @@ export default function CodeFormatter() {
                     block: "nearest",
                 });
             }, 100);
-        } catch (error) {
+        } catch (error: any) {
+            if (error.message === 'Insufficient credits') {
+                toast.error('You do not have enough credits to use this tool');
+                return;
+            }
             setResult("Error formatting code");
+            toast.error('Failed to format code');
         }
     };
 
