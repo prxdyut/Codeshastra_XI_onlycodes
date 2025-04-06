@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from app.tools.email_lookup import lookup_by_email
+from app.tools.email_lookup import lookup_email
 
 def register(app):
     @app.route('/api/lookup/email', methods=['POST'])
@@ -8,4 +8,4 @@ def register(app):
         email = data.get('email')
         if not email:
             return jsonify({"error": "Missing email"}), 400
-        return jsonify(lookup_by_email(email))
+        return jsonify(lookup_email(email))

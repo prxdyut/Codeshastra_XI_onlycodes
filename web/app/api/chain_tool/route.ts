@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ChainTool } from '@/app/managers/chain-tool';
+import { Socrates } from '@/app/managers/socrates';
 
-const chainTool = new ChainTool(process.env.GROQ_API_KEY || '');
+const socrates = new Socrates(process.env.GROQ_API_KEY || '');
 
 export async function POST(req: NextRequest) {
     try {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
                         { status: 400 }
                     );
                 }
-                result = await chainTool.analyzePrompt(prompt);
+                result = await socrates.analyzePrompt(prompt);
                 break;
 
             case 'process_step':
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
                         { status: 400 }
                     );
                 }
-                result = await chainTool.processStep(step, context);
+                result = await socrates.processStep(step, context);
                 break;
 
             case 'should_skip_question':
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
                         { status: 400 }
                     );
                 }
-                result = await chainTool.shouldSkipNextQuestion(currentAnswer, nextQuestion, context);
+                result = await socrates.shouldSkipNextQuestion(currentAnswer, nextQuestion, context);
                 break;
 
             case 'generate_final':
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
                     );
                 }
                 console.log('Generating final response');
-                result = await chainTool.generateFinalResponse(context, prompt);
+                result = await socrates.generateFinalResponse(context, prompt);
                 break;
 
             default:
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
     try {
-        const history = chainTool.getProcessHistory();
+        const history = socrates.getProcessHistory();
         return NextResponse.json({ history });
     } catch (error) {
         console.error('Error fetching history:', error);
@@ -89,7 +89,7 @@ export async function GET() {
 
 export async function DELETE() {
     try {
-        chainTool.clearProcessHistory();
+        socrates.clearProcessHistory();
         return NextResponse.json({ message: 'History cleared' });
     } catch (error) {
         console.error('Error clearing history:', error);
