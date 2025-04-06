@@ -1,6 +1,7 @@
 "use client";
-import { use } from "react";
+import { use, useEffect } from "react";
 import { notFound } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import CodeFormatter from "@/app/components/tools/CodeFormatter";
 import NetworkTools from "@/app/components/tools/NetworkTools";
 import RandomTools from "@/app/components/tools/RandomTools";
@@ -55,6 +56,30 @@ export default function ToolPage({
 }) {
     const resolvedParams = use(params);
     const Component = toolComponents[resolvedParams.tool];
+    const { user } = useUser();
+
+    useEffect(() => {
+        const decreaseCredits = async () => {
+            try {
+                if (!user) return;
+                
+                const response = await fetch(`/api/users/decrease-credits?clerkUserId=${user.id}&amount=0.5`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Failed to decrease credits:', data.error);
+                    // You might want to handle insufficient credits here
+                    if (data.error === 'Insufficient credits') {
+                        // Handle insufficient credits (e.g., show a message or redirect)
+                    }
+                }
+            } catch (error) {
+                console.error('Error decreasing credits:', error);
+            }
+        };
+
+        decreaseCredits();
+    }, [user]); // Run once when component mounts and user is available
 
     if (!Component) {
         return notFound();
