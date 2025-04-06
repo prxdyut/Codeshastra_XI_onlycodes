@@ -2,7 +2,7 @@
 
 import Groq from "groq-sdk";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
@@ -118,6 +118,14 @@ const TOOL_CATEGORIES: ToolCategory[] = [
             "/dashboard/tools/email-lookup",
         ],
     },
+    {
+        title: "Socrates",
+        tools: ["Socratic learning AI assistant"],
+        description:
+            "It answers your queries by asking you questions, and gives better answers.",
+        icon: "🔍",
+        endpoints: ["/dashboard/socrates"],
+    },
 ];
 
 interface AIResponse {
@@ -127,11 +135,41 @@ interface AIResponse {
     toolName?: string;
 }
 
+interface Item {
+    _id: string;
+    type: string;
+    timestamp: string;
+    data: {
+        text: string;
+    };
+}
+
 export default function DashboardPage() {
     const router = useRouter();
     const [aiQuery, setAiQuery] = useState("");
     const [aiResponse, setAiResponse] = useState<AIResponse | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [items, setItems] = useState<Item[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchItems();
+    }, []);
+
+    const fetchItems = async () => {
+        try {
+            const response = await fetch("/api/tasks/list");
+            const result = await response.json();
+
+            if (result.success) {
+                setItems(result.data);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAIQuery = async () => {
         setIsProcessing(true);
@@ -240,8 +278,56 @@ export default function DashboardPage() {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Credit and Tool Usage */}
             <div className="lg:col-span-2 space-y-6">
+                {/* Add Recent Todos section */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
+                    <h2 className="text-lg font-semibold mb-4">
+                        Recent Todos & Reminders
+                    </h2>
+                    <div className="space-y-4">
+                        {items.slice(0, 5).map((item) => (
+                            <div
+                                key={item._id}
+                                className="flex items-center justify-between p-4 bg-[#F5F9F3] rounded-lg"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
+                                        <span className="text-xl">
+                                            {item.type === "reminder"
+                                                ? "⏰"
+                                                : "✓"}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">
+                                            {item.data.text}
+                                        </p>
+                                        <p className="text-sm text-[#5E5F6E]">
+                                            {new Date(
+                                                item.timestamp
+                                            ).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="text-sm text-[#78A083] capitalize">
+                                    {item.type}
+                                </span>
+                            </div>
+                        ))}
+                        {items.length === 0 && (
+                            <p className="text-center text-gray-500">
+                                No items yet
+                            </p>
+                        )}
+                    </div>
+                    <Link
+                        href="/list"
+                        className="mt-4 text-sm text-blue-600 hover:underline block text-center"
+                    >
+                        View all items
+                    </Link>
+                </div>
+
                 {/* Credit Status Card */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
                     <div className="flex justify-between items-start mb-6">

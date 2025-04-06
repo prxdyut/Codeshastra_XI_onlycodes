@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     add,
     format,
@@ -10,54 +10,64 @@ import {
     startOfMonth,
     endOfMonth,
     eachDayOfInterval,
-    isSunday,
 } from "date-fns";
+
+interface Item {
+    _id: string;
+    type: string;
+    timestamp: string;
+    data: {
+        text: string;
+    };
+}
 
 export default function SchedulePage() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newTask, setNewTask] = useState({
-        title: "",
-        date: new Date(),
-        time: "",
-        type: "task",
-    });
+    const [items, setItems] = useState<Item[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [newTask, setNewTask] = useState({ text: "" });
 
-    // Sample holidays data
-    const holidays = [
-        { date: new Date(2024, 1, 14), name: "Valentine's Day" },
-        { date: new Date(2024, 0, 26), name: "Republic Day" },
-        // Add more holidays as needed
-    ];
+    useEffect(() => {
+        fetchItems();
+    }, []);
 
-    const [tasks, setTasks] = useState([
-        {
-            id: 1,
-            title: "Project Review",
-            date: new Date(2024, 1, 15),
-            time: "10:00 AM",
-            type: "meeting",
-        },
-        {
-            id: 2,
-            title: "Code Deployment",
-            date: new Date(2024, 1, 16),
-            time: "2:00 PM",
-            type: "task",
-        },
-    ]);
+    const fetchItems = async () => {
+        try {
+            const response = await fetch("/api/tasks/list");
+            const result = await response.json();
 
-    const handleAddTask = (e) => {
+            if (result.success) {
+                setItems(result.data);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddTask = async (e: React.FormEvent) => {
         e.preventDefault();
-        const newTaskWithId = {
-            ...newTask,
-            id: tasks.length + 1,
-            date: selectedDate,
-        };
-        setTasks([...tasks, newTaskWithId]);
-        setIsModalOpen(false);
-        setNewTask({ title: "", date: new Date(), time: "", type: "task" });
+        try {
+            const response = await fetch("/api/tasks", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ text: newTask.text }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                setIsModalOpen(false);
+                setNewTask({ text: "" });
+                fetchItems();
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
     };
 
     const daysInMonth = eachDayOfInterval({
@@ -77,39 +87,38 @@ export default function SchedulePage() {
                         Today's Schedule
                     </h2>
                     <div className="space-y-4">
-                        {tasks
-                            .filter((task) =>
-                                isSameDay(task.date, selectedDate)
+                        {items
+                            .filter((item) =>
+                                isSameDay(
+                                    new Date(item.timestamp),
+                                    selectedDate
+                                )
                             )
-                            .map((task) => (
+                            .map((item) => (
                                 <div
-                                    key={task.id}
+                                    key={item._id}
                                     className="flex items-center gap-4 p-4 bg-[#F5F9F3] rounded-lg"
                                 >
                                     <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center">
                                         <span className="text-xl">
-                                            {task.type === "meeting"
-                                                ? "👥"
+                                            {item.type === "reminder"
+                                                ? "⏰"
                                                 : "✓"}
                                         </span>
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="font-medium">
-                                            {task.title}
+                                            {item.data.text}
                                         </h3>
                                         <p className="text-sm text-[#5E5F6E]">
-                                            {task.time}
+                                            {format(
+                                                new Date(item.timestamp),
+                                                "h:mm a"
+                                            )}
                                         </p>
                                     </div>
                                 </div>
                             ))}
-                        {tasks.filter((task) =>
-                            isSameDay(task.date, selectedDate)
-                        ).length === 0 && (
-                            <p className="text-center text-[#5E5F6E] py-4">
-                                No tasks scheduled for this day
-                            </p>
-                        )}
                     </div>
                 </div>
 
@@ -118,31 +127,41 @@ export default function SchedulePage() {
                         Upcoming Tasks
                     </h2>
                     <div className="space-y-4">
-                        {tasks
+                        {items
                             .filter(
-                                (task) =>
-                                    task.date > selectedDate &&
-                                    isSameMonth(task.date, currentMonth)
+                                (item) =>
+                                    new Date(item.timestamp) > selectedDate &&
+                                    isSameMonth(
+                                        new Date(item.timestamp),
+                                        currentMonth
+                                    )
                             )
-                            .map((task) => (
+                            .map((item) => (
                                 <div
-                                    key={task.id}
+                                    key={item._id}
                                     className="flex items-center gap-4 p-4 bg-[#F5F9F3] rounded-lg"
                                 >
                                     <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center">
                                         <span className="text-xl">
-                                            {task.type === "meeting"
-                                                ? "👥"
+                                            {item.type === "reminder"
+                                                ? "⏰"
                                                 : "✓"}
                                         </span>
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="font-medium">
-                                            {task.title}
+                                            {item.data.text}
                                         </h3>
                                         <p className="text-sm text-[#5E5F6E]">
-                                            {format(task.date, "MMM d")} at{" "}
-                                            {task.time}
+                                            {format(
+                                                new Date(item.timestamp),
+                                                "MMM d"
+                                            )}{" "}
+                                            at{" "}
+                                            {format(
+                                                new Date(item.timestamp),
+                                                "h:mm a"
+                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -201,15 +220,11 @@ export default function SchedulePage() {
                                         : "text-[#5E5F6E] opacity-50"
                                 }
                                 ${
-                                    holidays.some((h) =>
-                                        isSameDay(h.date, date)
-                                    )
-                                        ? "bg-red-100"
-                                        : ""
-                                }
-                                ${
-                                    tasks.some((task) =>
-                                        isSameDay(task.date, date)
+                                    items.some((item) =>
+                                        isSameDay(
+                                            new Date(item.timestamp),
+                                            date
+                                        )
                                     )
                                         ? "font-bold"
                                         : ""
@@ -217,8 +232,8 @@ export default function SchedulePage() {
                             `}
                         >
                             {format(date, "d")}
-                            {tasks.some((task) =>
-                                isSameDay(task.date, date)
+                            {items.some((item) =>
+                                isSameDay(new Date(item.timestamp), date)
                             ) && (
                                 <span className="absolute bottom-1 left-1/2 w-1 h-1 bg-[#78A083] rounded-full"></span>
                             )}
@@ -247,47 +262,16 @@ export default function SchedulePage() {
                                 <label className="block mb-1">Title</label>
                                 <input
                                     type="text"
-                                    value={newTask.title}
+                                    value={newTask.text}
                                     onChange={(e) =>
                                         setNewTask({
                                             ...newTask,
-                                            title: e.target.value,
+                                            text: e.target.value,
                                         })
                                     }
                                     className="w-full p-2 border rounded"
                                     required
                                 />
-                            </div>
-                            <div>
-                                <label className="block mb-1">Time</label>
-                                <input
-                                    type="time"
-                                    value={newTask.time}
-                                    onChange={(e) =>
-                                        setNewTask({
-                                            ...newTask,
-                                            time: e.target.value,
-                                        })
-                                    }
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block mb-1">Type</label>
-                                <select
-                                    value={newTask.type}
-                                    onChange={(e) =>
-                                        setNewTask({
-                                            ...newTask,
-                                            type: e.target.value,
-                                        })
-                                    }
-                                    className="w-full p-2 border rounded"
-                                >
-                                    <option value="task">Task</option>
-                                    <option value="meeting">Meeting</option>
-                                </select>
                             </div>
                             <div className="flex gap-2">
                                 <button
