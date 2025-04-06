@@ -8,7 +8,6 @@ require('dotenv').config();
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
 });
-console.log(groq);
 
 // Initialize WhatsApp client
 const client = new Client({
@@ -34,10 +33,10 @@ async function transcribeAudio(audioPath) {
         const transcription = await groq.audio.transcriptions.create({
           file: fs.createReadStream(audioPath),
           model: "whisper-large-v3",
-          prompt: "Specify context or spelling", // Optional
-          response_format: "json", // Optional
-          language: "en", // Optional
-          temperature: 0.0, // Optional
+          prompt: "Specify context or spelling",
+          response_format: "json",
+          language: "en",
+          temperature: 0.0,
         });
 
         return transcription.text;
@@ -52,6 +51,10 @@ async function getDeepSeekResponse(text) {
     try {
         const completion = await groq.chat.completions.create({
             messages: [
+                {
+                    role: "system",
+                    content: "You are a helpful assistant. Keep your responses brief and concise, preferably within 1-2 sentences."
+                },
                 {
                     role: "user",
                     content: text
@@ -72,47 +75,34 @@ async function getDeepSeekResponse(text) {
 // Handle incoming messages
 client.on('message', async (message) => {
     try {
-        console.log(message);
         // Handle audio messages
         if (message.hasMedia && message.type === 'audio' || message.type === 'ptt') {
-            console.log('Received audio message. Processing...');
-            
-            // Download the audio file
             const media = await message.downloadMedia();
             const audioPath = `./temp_audio_${Date.now()}.ogg`;
             
-            // Save the audio file temporarily
             fs.writeFileSync(audioPath, media.data, 'base64');
-            
-            // Transcribe the audio
             const transcription = await transcribeAudio(audioPath);
-            
-            // Delete the temporary audio file
             fs.unlinkSync(audioPath);
             
             if (transcription) {
-                // First send the transcription
-                await message.reply(`Transcription: ${transcription}`);
-                
-                // Get and send the DeepSeek response
+                await message.reply(transcription);
                 const aiResponse = await getDeepSeekResponse(transcription);
                 if (aiResponse) {
-                    await message.reply(`AI Response: ${aiResponse}`);
+                    await message.reply(aiResponse);
                 } else {
-                    await message.reply('Sorry, I could not generate a response to your message.');
+                    await message.reply('Sorry, I could not generate a response.');
                 }
             } else {
-                await message.reply('Sorry, I could not transcribe the audio message.');
+                await message.reply('Sorry, I could not transcribe the audio.');
             }
         }
         // Handle text messages
         else if (message.type === 'chat') {
-            console.log('Received text message. Processing...');
             const aiResponse = await getDeepSeekResponse(message.body);
             if (aiResponse) {
                 await message.reply(aiResponse);
             } else {
-                await message.reply('Sorry, I could not generate a response to your message.');
+                await message.reply('Sorry, I could not generate a response.');
             }
         }
     } catch (error) {
@@ -123,3 +113,4 @@ client.on('message', async (message) => {
 
 // Initialize the client
 client.initialize();
+
