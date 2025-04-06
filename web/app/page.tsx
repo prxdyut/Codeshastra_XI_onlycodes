@@ -32,6 +32,27 @@ const THEME = {
 // Updated tool categories with more specific tools
 const TOOL_CATEGORIES = [
     {
+        title: "AI Assistants",
+        description: "Intelligent automation and assistance",
+        tools: [
+            {
+                name: "Socrates AI",
+                description:
+                    "Your intelligent learning companion. Ask questions, get explanations, and master new concepts through interactive discussions.",
+                icon: "🤖",
+                color: "amber",
+            },
+            {
+                name: "Aristotle AI",
+                description:
+                    "Automated workflow assistant that can analyze, process and transform data using our tools. Perfect for complex multi-step operations.",
+                icon: "⚡",
+                color: "purple",
+            },
+        ],
+        icon: "🧠",
+    },
+    {
         title: "Text & Documentation",
         description: "Transform and organize your text content",
         tools: [
@@ -494,6 +515,51 @@ export default function Home() {
                                 </ul>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* AI Assistants Section */}
+            <div className="container mx-auto px-6 py-20 border-b border-[#E0E6E3]">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold text-[#131316] mb-4">
+                        AI-Powered Assistance
+                    </h2>
+                    <p className="text-[#5E5F6E] max-w-2xl mx-auto">
+                        Meet our intelligent AI assistants that help automate
+                        your workflow
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-6 rounded-xl border-2 border-amber-200 bg-amber-50">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="text-3xl">🤖</div>
+                            <h3 className="text-xl font-bold text-amber-800">
+                                Socrates AI
+                            </h3>
+                        </div>
+                        <p className="text-gray-600">
+                            Your intelligent learning companion. Ask questions,
+                            get explanations, and master new concepts through
+                            interactive discussions. Perfect for developers
+                            seeking to understand complex topics.
+                        </p>
+                    </div>
+
+                    <div className="p-6 rounded-xl border-2 border-purple-200 bg-purple-50">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="text-3xl">⚡</div>
+                            <h3 className="text-xl font-bold text-purple-800">
+                                Aristotle AI
+                            </h3>
+                        </div>
+                        <p className="text-gray-600">
+                            Automated workflow assistant that can analyze,
+                            process and transform data using our tools. Let
+                            Aristotle handle complex multi-step operations and
+                            automate your tasks efficiently.
+                        </p>
                     </div>
                 </div>
             </div>
