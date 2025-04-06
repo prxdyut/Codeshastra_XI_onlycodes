@@ -10,7 +10,7 @@ export const useToolCredits = () => {
 
         try {
             setIsProcessing(true);
-            const response = await fetch(`/api/users/decrease-credits?clerkUserId=${user.id}&amount=0.5`);
+            const response = await fetch(`/api/users/decrease-credits?clerkUserId=${user.id}&amount=1`);
             const data = await response.json();
 
             if (!response.ok) {

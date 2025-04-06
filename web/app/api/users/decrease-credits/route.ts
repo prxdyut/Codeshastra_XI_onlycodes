@@ -15,10 +15,12 @@ export async function GET(request: NextRequest) {
 
         // Validate inputs
         if (!clerkUserId) {
+            console.log('Clerk user ID is required');
             return NextResponse.json({ error: 'Clerk user ID is required' }, { status: 400 });
         }
 
         if (!amount || amount <= 0) {
+            console.log('Valid amount is required');
             return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 });
         }
 
@@ -30,6 +32,7 @@ export async function GET(request: NextRequest) {
         );
 
         if (!user) {
+            console.log('User not found');
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
@@ -40,6 +43,7 @@ export async function GET(request: NextRequest) {
                 { clerkUserId },
                 { $inc: { credits: amount } }
             );
+            console.log('Insufficient credits');
             return NextResponse.json({ error: 'Insufficient credits' }, { status: 400 });
         }
 
