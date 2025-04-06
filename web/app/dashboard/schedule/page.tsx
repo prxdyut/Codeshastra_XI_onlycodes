@@ -18,7 +18,22 @@ interface Item {
     timestamp: string;
     data: {
         text: string;
+        action?: {
+            reminder?: {
+                message: string;
+                dateTime: string;
+                recurring?: string;
+                priority?: string;
+            };
+            todo?: {
+                message: string;
+                dueDate: string;
+                priority: string;
+                category: string;
+            };
+        };
     };
+    completed?: boolean;
 }
 
 export default function SchedulePage() {
@@ -70,6 +85,49 @@ export default function SchedulePage() {
         }
     };
 
+    const handleDelete = async (id: string) => {
+        try {
+            const response = await fetch(`/api/tasks/${id}`, {
+                method: "DELETE",
+            });
+            if (response.ok) {
+                fetchItems();
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+
+    const handleComplete = async (id: string) => {
+        try {
+            const response = await fetch(`/api/tasks/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ completed: true }),
+            });
+            if (response.ok) {
+                fetchItems();
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+
+    const handleClearAll = async () => {
+        try {
+            const response = await fetch("/api/tasks/clear", {
+                method: "DELETE",
+            });
+            if (response.ok) {
+                fetchItems();
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+
     const daysInMonth = eachDayOfInterval({
         start: startOfMonth(currentMonth),
         end: endOfMonth(currentMonth),
@@ -78,14 +136,74 @@ export default function SchedulePage() {
     const nextMonth = () => setCurrentMonth(add(currentMonth, { months: 1 }));
     const prevMonth = () => setCurrentMonth(sub(currentMonth, { months: 1 }));
 
+    const renderItem = (item: Item) => (
+        <div
+            key={item._id}
+            className={`flex items-center gap-4 p-4 ${
+                item.completed ? "bg-gray-100" : "bg-[#F5F9F3]"
+            } rounded-lg`}
+        >
+            <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center">
+                <span className="text-xl">
+                    {item.type === "reminder" ? "⏰" : "✓"}
+                </span>
+            </div>
+            <div className="flex-1">
+                <h3
+                    className={`font-medium ${
+                        item.completed ? "line-through text-gray-500" : ""
+                    }`}
+                >
+                    {item.data.action?.reminder?.message ||
+                        item.data.action?.todo?.message ||
+                        item.data.text}
+                </h3>
+                <p className="text-sm text-[#5E5F6E]">
+                    {format(new Date(item.timestamp), "MMM d")} at{" "}
+                    {format(new Date(item.timestamp), "h:mm a")}
+                    {item.data.action?.reminder?.recurring &&
+                        ` • Recurring: ${item.data.action.reminder.recurring}`}
+                    {item.data.action?.reminder?.priority &&
+                        ` • Priority: ${item.data.action.reminder.priority}`}
+                </p>
+            </div>
+            <div className="flex gap-2">
+                {!item.completed && (
+                    <button
+                        onClick={() => handleComplete(item._id)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded"
+                        title="Complete"
+                    >
+                        ✓
+                    </button>
+                )}
+                <button
+                    onClick={() => handleDelete(item._id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    title="Delete"
+                >
+                    ×
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Left Column - Task Overview */}
             <div className="md:col-span-2 space-y-6">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
-                    <h2 className="text-xl font-semibold mb-4">
-                        Today's Schedule
-                    </h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-semibold">
+                            Today's Schedule
+                        </h2>
+                        <button
+                            onClick={handleClearAll}
+                            className="text-sm text-red-600 hover:text-red-800"
+                        >
+                            Clear All
+                        </button>
+                    </div>
                     <div className="space-y-4">
                         {items
                             .filter((item) =>
@@ -94,31 +212,7 @@ export default function SchedulePage() {
                                     selectedDate
                                 )
                             )
-                            .map((item) => (
-                                <div
-                                    key={item._id}
-                                    className="flex items-center gap-4 p-4 bg-[#F5F9F3] rounded-lg"
-                                >
-                                    <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center">
-                                        <span className="text-xl">
-                                            {item.type === "reminder"
-                                                ? "⏰"
-                                                : "✓"}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-medium">
-                                            {item.data.text}
-                                        </h3>
-                                        <p className="text-sm text-[#5E5F6E]">
-                                            {format(
-                                                new Date(item.timestamp),
-                                                "h:mm a"
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                            .map(renderItem)}
                     </div>
                 </div>
 
@@ -136,36 +230,7 @@ export default function SchedulePage() {
                                         currentMonth
                                     )
                             )
-                            .map((item) => (
-                                <div
-                                    key={item._id}
-                                    className="flex items-center gap-4 p-4 bg-[#F5F9F3] rounded-lg"
-                                >
-                                    <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center">
-                                        <span className="text-xl">
-                                            {item.type === "reminder"
-                                                ? "⏰"
-                                                : "✓"}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-medium">
-                                            {item.data.text}
-                                        </h3>
-                                        <p className="text-sm text-[#5E5F6E]">
-                                            {format(
-                                                new Date(item.timestamp),
-                                                "MMM d"
-                                            )}{" "}
-                                            at{" "}
-                                            {format(
-                                                new Date(item.timestamp),
-                                                "h:mm a"
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                            .map(renderItem)}
                     </div>
                 </div>
             </div>
@@ -259,9 +324,10 @@ export default function SchedulePage() {
                         </h2>
                         <form onSubmit={handleAddTask} className="space-y-4">
                             <div>
-                                <label className="block mb-1">Title</label>
-                                <input
-                                    type="text"
+                                <label className="block mb-1">
+                                    Description
+                                </label>
+                                <textarea
                                     value={newTask.text}
                                     onChange={(e) =>
                                         setNewTask({
@@ -270,6 +336,8 @@ export default function SchedulePage() {
                                         })
                                     }
                                     className="w-full p-2 border rounded"
+                                    rows={4}
+                                    placeholder="Example: Remind me to call John tomorrow at 3pm&#10;Example: Add a todo to buy groceries by next Friday"
                                     required
                                 />
                             </div>

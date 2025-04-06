@@ -505,8 +505,8 @@ export default function Home() {
                                 </p>
                                 <ul className="text-xs text-gray-500">
                                     {category.tools.slice(0, 2).map((tool) => (
-                                        <li key={tool} className="mb-1">
-                                            • {tool}
+                                        <li key={typeof tool === "string" ? tool : tool.name} className="mb-1">
+                                            • {typeof tool === "string" ? tool : tool.name}
                                         </li>
                                     ))}
                                     <li className="text-blue-600">
