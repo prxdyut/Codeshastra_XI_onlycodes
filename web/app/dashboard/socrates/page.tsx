@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoSend } from "react-icons/io5";
 import { FiFile } from "react-icons/fi";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
     text: string;
@@ -77,7 +78,7 @@ const page = () => {
             sender,
             timestamp: new Date(),
         };
-        setMessages(prev => [...prev, newMessage]);
+        setMessages((prev) => [...prev, newMessage]);
     };
 
     const handleInitialPrompt = async () => {
@@ -88,14 +89,14 @@ const page = () => {
         setInputText("");
 
         try {
-            const response = await fetch('/api/chain_tool', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/api/chain_tool", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     prompt: inputText,
-                    action: 'analyze',
-                    files: files.map(f => ({ name: f.name, type: f.type }))
-                })
+                    action: "analyze",
+                    files: files.map((f) => ({ name: f.name, type: f.type })),
+                }),
             });
 
             const data = await response.json();
@@ -103,17 +104,26 @@ const page = () => {
             if (data.result) {
                 setSteps(data.result.steps);
                 setContext(inputText);
-                
+
                 const stepList = data.result.steps
-                    .map((step: Step, index: number) => `${index + 1}. ${step.title}`)
-                    .join('\n');
-                
-                addMessage(`I've analyzed your request and broken it down into the following steps:\n\n${stepList}\n\nWould you like to proceed with these steps? (yes/no)`, "bot");
+                    .map(
+                        (step: Step, index: number) =>
+                            `${index + 1}. ${step.title}`
+                    )
+                    .join("\n");
+
+                addMessage(
+                    `I've analyzed your request and broken it down into the following steps:\n\n${stepList}\n\nWould you like to proceed with these steps? (yes/no)`,
+                    "bot"
+                );
                 setShowStepConfirmation(true);
             }
         } catch (error) {
-            console.error('Error:', error);
-            addMessage('Sorry, there was an error analyzing your request.', "bot");
+            console.error("Error:", error);
+            addMessage(
+                "Sorry, there was an error analyzing your request.",
+                "bot"
+            );
         } finally {
             setIsProcessing(false);
         }
@@ -121,21 +131,21 @@ const page = () => {
 
     const processStep = async (step: Step) => {
         try {
-            const response = await fetch('/api/chain_tool', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/api/chain_tool", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    action: 'process_step',
+                    action: "process_step",
                     step,
                     context,
-                    files: files.map(f => ({ name: f.name, type: f.type }))
-                })
+                    files: files.map((f) => ({ name: f.name, type: f.type })),
+                }),
             });
 
             const data = await response.json();
             return data.result as StepResult;
         } catch (error) {
-            console.error('Error:', error);
+            console.error("Error:", error);
             throw error;
         }
     };
@@ -144,10 +154,13 @@ const page = () => {
         setShowStepConfirmation(false);
         if (proceed) {
             setCurrentStep(0);
-            addMessage('Great! Let\'s start with the first step.', "bot");
+            addMessage("Great! Let's start with the first step.", "bot");
             await startNextStep();
         } else {
-            addMessage('Process cancelled. Feel free to start over with a new request.', "bot");
+            addMessage(
+                "Process cancelled. Feel free to start over with a new request.",
+                "bot"
+            );
             resetState();
         }
     };
@@ -155,23 +168,29 @@ const page = () => {
     const startNextStep = async () => {
         if (currentStep >= 0 && currentStep < steps.length) {
             const step = steps[currentStep];
-            addMessage(`Step ${currentStep + 1}: ${step.title}\n${step.description}`, "bot");
-            
+            addMessage(
+                `Step ${currentStep + 1}: ${step.title}\n${step.description}`,
+                "bot"
+            );
+
             try {
                 const stepResult = await processStep(step);
-                
+
                 if (stepResult.needsHumanInput && stepResult.requiredInput) {
                     setCurrentQuestion(0);
                     addMessage(stepResult.requiredInput[0], "bot");
                     setCurrentOptions(stepResult.options?.[0] || []);
                 } else if (stepResult.toolCalls) {
-                    addMessage('Processing automated step...', "bot");
+                    addMessage("Processing automated step...", "bot");
                     addMessage(stepResult.explanation, "bot");
                     moveToNextStep();
                 }
             } catch (error) {
-                console.error('Error:', error);
-                addMessage('Error processing this step. Would you like to try again? (yes/no)', "bot");
+                console.error("Error:", error);
+                addMessage(
+                    "Error processing this step. Would you like to try again? (yes/no)",
+                    "bot"
+                );
             }
         } else if (currentStep === steps.length) {
             await generateFinalSummary();
@@ -189,7 +208,7 @@ const page = () => {
 
         try {
             if (showStepConfirmation) {
-                handleStepConfirmation(answer.toLowerCase() === 'yes');
+                handleStepConfirmation(answer.toLowerCase() === "yes");
                 return;
             }
 
@@ -201,53 +220,74 @@ const page = () => {
             }
 
             if (!stepResult.needsHumanInput || !stepResult.requiredInput) {
-                addMessage('Error: Invalid step result', "bot");
+                addMessage("Error: Invalid step result", "bot");
                 return;
             }
 
             const lowerAnswer = answer.toLowerCase().trim();
-            if (lowerAnswer === 'am done') {
-                addMessage('Process terminated early by user.', "bot");
+            if (lowerAnswer === "am done") {
+                addMessage("Process terminated early by user.", "bot");
                 await generateFinalSummary();
                 resetState();
                 return;
-            } else if (lowerAnswer === 'next step') {
-                addMessage('Skipping to next step...', "bot");
+            } else if (lowerAnswer === "next step") {
+                addMessage("Skipping to next step...", "bot");
                 await moveToNextStep();
                 return;
             }
 
-            const currentQuestionText = stepResult.requiredInput[currentQuestion];
-            setContext(prev => `${prev}\nUser answer for "${currentQuestionText}": ${answer}`);
+            const currentQuestionText =
+                stepResult.requiredInput[currentQuestion];
+            setContext(
+                (prev) =>
+                    `${prev}\nUser answer for "${currentQuestionText}": ${answer}`
+            );
 
             if (currentQuestion < stepResult.requiredInput.length - 1) {
-                const nextQuestionText = stepResult.requiredInput[currentQuestion + 1];
-                const nextOptions = stepResult.options?.[currentQuestion + 1] || [];
+                const nextQuestionText =
+                    stepResult.requiredInput[currentQuestion + 1];
+                const nextOptions =
+                    stepResult.options?.[currentQuestion + 1] || [];
                 setCurrentOptions(nextOptions);
-                
+
                 if (currentQuestion < stepResult.requiredInput.length - 2) {
                     try {
-                        const skipResponse = await fetch('/api/chain_tool', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                        const skipResponse = await fetch("/api/chain_tool", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                action: 'should_skip_question',
+                                action: "should_skip_question",
                                 currentAnswer: answer,
                                 nextQuestion: nextQuestionText,
-                                context
-                            })
+                                context,
+                            }),
                         });
 
                         const skipData = await skipResponse.json();
 
-                        if (skipData.result.shouldSkip && skipData.result.inferredAnswer) {
-                            addMessage(`Automatically answering: ${nextQuestionText}\nInferred answer: ${skipData.result.inferredAnswer}`, "bot");
-                            setContext(prev => `${prev}\nInferred answer for "${nextQuestionText}": ${skipData.result.inferredAnswer}`);
-                            
+                        if (
+                            skipData.result.shouldSkip &&
+                            skipData.result.inferredAnswer
+                        ) {
+                            addMessage(
+                                `Automatically answering: ${nextQuestionText}\nInferred answer: ${skipData.result.inferredAnswer}`,
+                                "bot"
+                            );
+                            setContext(
+                                (prev) =>
+                                    `${prev}\nInferred answer for "${nextQuestionText}": ${skipData.result.inferredAnswer}`
+                            );
+
                             const newQuestionIndex = currentQuestion + 2;
-                            if (newQuestionIndex < stepResult.requiredInput.length) {
+                            if (
+                                newQuestionIndex <
+                                stepResult.requiredInput.length
+                            ) {
                                 setCurrentQuestion(newQuestionIndex);
-                                addMessage(stepResult.requiredInput[newQuestionIndex], "bot");
+                                addMessage(
+                                    stepResult.requiredInput[newQuestionIndex],
+                                    "bot"
+                                );
                             } else {
                                 await moveToNextStep();
                             }
@@ -256,7 +296,7 @@ const page = () => {
                             addMessage(nextQuestionText, "bot");
                         }
                     } catch (error) {
-                        console.error('Error:', error);
+                        console.error("Error:", error);
                         setCurrentQuestion(currentQuestion + 1);
                         addMessage(nextQuestionText, "bot");
                     }
@@ -269,8 +309,11 @@ const page = () => {
                 await moveToNextStep();
             }
         } catch (error) {
-            console.error('Error:', error);
-            addMessage('Error processing your answer. Please try again.', "bot");
+            console.error("Error:", error);
+            addMessage(
+                "Error processing your answer. Please try again.",
+                "bot"
+            );
         } finally {
             setIsProcessing(false);
         }
@@ -278,32 +321,47 @@ const page = () => {
 
     const moveToNextStep = async () => {
         const nextStepIndex = currentStep + 1;
-        
+
         if (nextStepIndex < steps.length) {
             setCurrentStep(nextStepIndex);
             setCurrentQuestion(0);
             const nextStep = steps[nextStepIndex];
-            
-            addMessage(`Moving to Step ${nextStepIndex + 1}: ${nextStep.title}\n${nextStep.description}`, "bot");
-            
+
+            addMessage(
+                `Moving to Step ${nextStepIndex + 1}: ${nextStep.title}\n${
+                    nextStep.description
+                }`,
+                "bot"
+            );
+
             try {
                 const stepResult = await processStep(nextStep);
                 nextStep.cachedResult = stepResult;
-                
-                if (stepResult.needsHumanInput && stepResult.requiredInput && stepResult.requiredInput.length > 0) {
+
+                if (
+                    stepResult.needsHumanInput &&
+                    stepResult.requiredInput &&
+                    stepResult.requiredInput.length > 0
+                ) {
                     addMessage(stepResult.requiredInput[0], "bot");
                     setCurrentOptions(stepResult.options?.[0] || []);
                 } else if (stepResult.toolCalls) {
-                    addMessage('Processing automated step...', "bot");
+                    addMessage("Processing automated step...", "bot");
                     addMessage(stepResult.explanation, "bot");
                     await moveToNextStep();
                 }
             } catch (error) {
-                console.error('Error:', error);
-                addMessage('Error processing the next step. Please try again.', "bot");
+                console.error("Error:", error);
+                addMessage(
+                    "Error processing the next step. Please try again.",
+                    "bot"
+                );
             }
         } else {
-            addMessage('All steps completed! Generating final summary...', "bot");
+            addMessage(
+                "All steps completed! Generating final summary...",
+                "bot"
+            );
             await generateFinalSummary();
             resetState();
         }
@@ -311,57 +369,71 @@ const page = () => {
 
     const generateFinalSummary = async () => {
         try {
-            const stepResults = steps.map(step => ({
+            const stepResults = steps.map((step) => ({
                 title: step.title,
                 description: step.description,
                 result: step.cachedResult,
-                isHumanStep: step.humanStep
+                isHumanStep: step.humanStep,
             }));
 
-            const originalPrompt = messages[0]?.text || '';
-            const conversationHistory = messages.map(msg => ({
+            const originalPrompt = messages[0]?.text || "";
+            const conversationHistory = messages.map((msg) => ({
                 role: msg.sender === "user" ? "user" : "assistant",
                 content: msg.text,
-                timestamp: msg.timestamp
+                timestamp: msg.timestamp,
             }));
 
             const toolOutputs = steps
-                .filter(step => !step.humanStep && step.cachedResult?.toolCalls)
-                .map(step => ({
+                .filter(
+                    (step) => !step.humanStep && step.cachedResult?.toolCalls
+                )
+                .map((step) => ({
                     step: step.title,
-                    tools: step.cachedResult?.toolCalls
+                    tools: step.cachedResult?.toolCalls,
                 }));
 
-            const response = await fetch('/api/chain_tool', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/api/chain_tool", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    action: 'generate_final',
+                    action: "generate_final",
                     context,
                     prompt: originalPrompt,
                     steps: stepResults,
                     conversationHistory,
                     toolOutputs,
-                    files: files.map(f => ({ name: f.name, type: f.type }))
-                })
+                    files: files.map((f) => ({ name: f.name, type: f.type })),
+                }),
             });
 
             const data = await response.json();
-            
+
             if (!data.result) {
-                throw new Error('No result in API response');
+                throw new Error("No result in API response");
             }
 
             // Remove any "think" tags from the response
-            const cleanedResult = data.result.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+            const cleanedResult = data.result
+                .replace(/<think>[\s\S]*?<\/think>/g, "")
+                .trim();
 
-            addMessage('Process completed! Here\'s the final analysis:\n\n' + cleanedResult, "bot");
-            addMessage('\nTip: You can copy this report or save it for future reference. The report includes technical details and optimization suggestions that may be valuable for implementation.', "bot");
-            
+            addMessage(
+                "Process completed! Here's the final analysis:\n\n" +
+                    cleanedResult,
+                "bot"
+            );
+            addMessage(
+                "\nTip: You can copy this report or save it for future reference. The report includes technical details and optimization suggestions that may be valuable for implementation.",
+                "bot"
+            );
         } catch (error) {
-            console.error('Error:', error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            addMessage(`Error generating final summary. Please try again or contact support if the issue persists.\nError: ${errorMessage}`, "bot");
+            console.error("Error:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : String(error);
+            addMessage(
+                `Error generating final summary. Please try again or contact support if the issue persists.\nError: ${errorMessage}`,
+                "bot"
+            );
         }
     };
 
@@ -387,7 +459,7 @@ const page = () => {
 
     const handleSend = () => {
         if (showStepConfirmation) {
-            handleStepConfirmation(inputText.toLowerCase() === 'yes');
+            handleStepConfirmation(inputText.toLowerCase() === "yes");
             setInputText("");
         } else if (currentStep >= 0) {
             handleAnswer();
@@ -399,7 +471,6 @@ const page = () => {
     return (
         <div className="h-full flex flex-col bg-[#F5F9F3] p-0 m-0">
             <div className="flex flex-col h-full">
-
                 {/* Main Chat Container */}
                 <div className="flex-1 flex flex-col min-h-0">
                     {/* Quick Questions */}
@@ -438,7 +509,15 @@ const page = () => {
                                     <div className="text-sm opacity-75 mb-1">
                                         {message.timestamp.toLocaleTimeString()}
                                     </div>
-                                    <div className="whitespace-pre-wrap">{message.text}</div>
+                                    {message.sender === "bot" ? (
+                                        <div className="whitespace-pre-wrap prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-[#2D3A3A] prose-strong:text-[#2D3A3A] prose-a:text-[#78A083]">
+                                            <ReactMarkdown>{message.text}</ReactMarkdown>
+                                        </div>
+                                    ) : (
+                                        <div className="whitespace-pre-wrap">
+                                            {message.text}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -511,7 +590,7 @@ const page = () => {
                                         onClick={() => setInputText(option)}
                                         disabled={isProcessing}
                                         className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                            isProcessing 
+                                            isProcessing
                                                 ? "bg-[#F5F9F3] text-[#5E5F6E]"
                                                 : "bg-[#F5F9F3] hover:bg-[#E0E6E3] text-[#2D3A3A]"
                                         }`}
