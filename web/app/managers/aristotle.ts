@@ -226,12 +226,12 @@ export class Aristotle {
             },
             {
                 title: "a_lookup",
-                description: "Look up information about an A Record",
+                description: "Look up information about an A Record (not a domain)(like 142.251.42.46)",
                 arguments: [
                     {
                         label: "a",
                         type: "string",
-                        description: "A Record to look up",
+                        description: "A Record to look up (not a domain)(like 142.251.42.46)",
                         required: true
                     }
                 ],
@@ -503,15 +503,6 @@ Response Format:
       "arg2": "value2"
     },
     "expectedReturn": "return_type",
-    "dependsOn": {
-      "toolCall": 0,
-      "outputMapping": [
-        {
-          "from": "result.data",
-          "to": "arg1"
-        }
-      ]
-    }
   }
 ]`;
 
@@ -602,118 +593,99 @@ Response Format:
         previousResult: any,
         previousTool: Tool
     ): Promise<Record<string, any>> {
-        const { requirements, schema } = this.summarizeToolRequirements(currentTool);
+        // Create a structured summary of the previous tool's output
         const previousSummary = await this.summarizeToolOutput(previousResult, previousTool);
+        console.log(previousSummary)
+        // Create a structured summary of the current tool's requirements
+        const currentRequirements = await this.summarizeToolRequirements(currentTool);
+        console.log(currentRequirements)
+
+        // Generate the prompt with clear structure
+        const prompt = `You are an AI assistant that connects tool outputs to new tool inputs. Follow these steps:
     
-        const prompt = `STRICT RULES:
-        1. ONLY use arguments defined in the schema
-        2. NEVER invent new parameters
-        3. Maintain EXACT argument types
-        4. Omit unspecified optional arguments
-        
-        Current tool requirements:
-        ${requirements}
+    1. PREVIOUS TOOL OUTPUT ANALYSIS:
+    Tool: ${previousTool.title}
+    Description: ${previousTool.description}
+    Output Summary: ${previousSummary}
     
-        Input schema: ${schema}
+    2. CURRENT TOOL REQUIREMENTS:
+    Tool: ${currentTool.title}
+    Description: ${currentTool.description}
+    Arguments: ${currentRequirements}
     
-        Previous tool output (${previousTool.title}):
-        ${previousSummary}
+    3. CONNECTION ANALYSIS:
+    - Identify which parts of the previous output can satisfy the current tool's requirements
+    - Map fields logically (e.g., "code" output → "input" argument)
+    - Only include arguments that can be reasonably derived from the previous output
     
-        Generate arguments that ONLY use data from the previous output and STRICTLY follow the schema.`;
+    4. OUTPUT FORMAT:
+    Return ONLY a JSON object with the arguments you've determined should be passed to the current tool.
+    Include ONLY arguments that can be reasonably derived from the previous output.
+    If no clear connection exists, return an empty object {}.
     
+    Now generate the argument mapping based on the above information.`;
+
         try {
             const completion = await this.groq.chat.completions.create({
-                messages: [{ role: "system", content: prompt }],
+                messages: [
+                    { role: "system", content: prompt },
+                ],
                 model: "deepseek-r1-distill-llama-70b",
-                temperature: 0
+                temperature: 0,
+                max_tokens: 2048,
             });
-    
-            const raw = completion.choices[0]?.message?.content || '{}';
-            const generated = JSON.parse(this.cleanJsonResponse(raw));
-            
-            // Schema validation
-            return this.validateGeneratedArgs(generated, currentTool);
+
+            const content = this.cleanJsonResponse(completion.choices[0]?.message?.content as string);
+
+            if (!content) {
+                throw new Error("No argument suggestions generated");
+            }
+
+            try {
+                const result = JSON.parse(content);
+                console.log('Generated tool arguments:', result);
+                return result;
+            } catch (e) {
+                console.error("Failed to parse LLM response as JSON:", content);
+                return {}; // Return empty object if parsing fails
+            }
         } catch (error) {
-            console.error('Argument generation failed:', error);
-            return {};
+            console.error("Failed to generate tool arguments:", error);
+            return {}; // Return empty object on error
         }
     }
-    
-    private validateGeneratedArgs(generated: any, tool: Tool): Record<string, any> {
-        const validArgs: Record<string, any> = {};
-        
-        tool.arguments.forEach(arg => {
-            if (generated.hasOwnProperty(arg.label)) {
-                // Type checking
-                const expectedType = arg.type.replace('[]', '');
-                const actualType = Array.isArray(generated[arg.label]) ? 'array' 
-                    : typeof generated[arg.label];
-                    
-                if (actualType === expectedType) {
-                    validArgs[arg.label] = generated[arg.label];
-                }
-            }
-        });
-    
-        // Ensure required args are present
-        tool.arguments
-            .filter(a => a.required)
-            .forEach(a => {
-                if (!validArgs[a.label]) {
-                    throw new Error(`Missing required argument: ${a.label}`);
-                }
-            });
-    
-        return validArgs;
-    }
 
+    // Summarize tool output using Groq
     private async summarizeToolOutput(result: any, tool: Tool): Promise<string> {
-        const prompt = `Analyze this ${tool.title} output and create an extremely concise summary following these rules:
-        - Maximum 3 bullet points
-        - Only include key data points
-        - Highlight data types and structure
-        - Ignore implementation details
-        - Never exceed 100 words
-        
-        Output format:
-        - Main data type: <type>
-        - Key fields: <comma-separated list>
-        - Notable values: <brief description>
-    
-        Output to summarize: ${JSON.stringify(result)}`;
-    
+        const prompt = `Summarize the following tool output in a concise and structured format:\n\n${JSON.stringify(result, null, 2)}`;
+
         const completion = await this.groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama3-70b-8192",
-            temperature: 0
+            model: "llama3-70b-8192"
         });
-    
-        return completion.choices[0]?.message?.content || "No summary";
+
+        return completion.choices[0]?.message?.content || "No summary generated.";
     }
 
-    private summarizeToolRequirements(tool: Tool): {
-        requirements: string;
-        schema: string;
-    } {
-        const requirements = tool.arguments.map(arg => {
-            const rule = [
-                `- ${arg.label}:`,
-                `Type: ${arg.type}`,
-                arg.required ? 'REQUIRED' : 'Optional',
-                arg.acceptsOutput ? `Accepts from: ${arg.acceptsOutput.join(', ')}` : ''
-            ].filter(Boolean).join(' | ');
-            
-            return `${rule}\n  Description: ${arg.description}`;
-        }).join('\n');
-    
+    // Summarize tool requirements using Groq
+    private async summarizeToolRequirements(tool: Tool): Promise<{
+        requiredArgs: string;
+        optionalArgs: string;
+    }> {
+        const prompt = `You are analyzing a tool definition. Summarize the required and optional arguments from the list below.\n` +
+            `For each argument, include label, type, and description.\nReturn two sections: Required and Optional.\n\n` +
+            `${JSON.stringify(tool.arguments, null, 2)}`;
+
+        const completion = await this.groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "llama3-70b-8192"
+        });
+
+        const summary = completion.choices[0]?.message?.content || "No summary generated.";
+
         return {
-            requirements: `Tool: ${tool.title}\n${requirements}`,
-            schema: JSON.stringify({
-                required: tool.arguments.filter(a => a.required).map(a => a.label),
-                optional: tool.arguments.filter(a => !a.required).map(a => a.label),
-                inputTypes: Object.fromEntries(
-                    tool.arguments.map(a => [a.label, a.type])
-            })
+            requiredArgs: summary,
+            optionalArgs: '' // You can parse further if needed, or return the full text
         };
     }
 
@@ -742,9 +714,8 @@ Response Format:
                 requiredArgs: currentTool.arguments.filter(arg => arg.required).map(arg => arg.label)
             });
 
-            // If there's a previous result and no explicit dependencies,
-            // use LLM to suggest arguments
-            if (i > 0 && !toolCall.dependsOn) {
+            
+            if (i > 0) {
                 console.log('\n🤖 Attempting to generate arguments using LLM');
                 const previousResult = results[i - 1].result;
                 const previousTool = this.tools.find(t => t.title === results[i - 1].tool);
@@ -758,6 +729,7 @@ Response Format:
                         );
                         console.log('✨ LLM suggested arguments:', JSON.stringify(suggestedArgs, null, 2));
                         toolCall.arguments = { ...toolCall.arguments, ...suggestedArgs };
+                        console.log(toolCall)
                         console.log('🔄 Updated arguments:', JSON.stringify(toolCall.arguments, null, 2));
                     } catch (error) {
                         console.warn('⚠️ Failed to generate arguments:', error);
@@ -766,35 +738,8 @@ Response Format:
                 }
             }
 
-            // Handle explicit dependencies if they exist
-            if (toolCall.dependsOn) {
-                console.log('\n🔗 Processing dependencies');
-                console.log('Dependency config:', toolCall.dependsOn);
-
-                const dependencyResult = resultMap.get(toolCall.dependsOn.toolCall);
-                if (!dependencyResult) {
-                    console.error('❌ Dependency result not found');
-                    throw new Error(`Dependency result not found for tool ${toolCall.tool}`);
-                }
-                console.log('Found dependency result:', JSON.stringify(dependencyResult, null, 2));
-
-                // Map the outputs from dependency to current tool's arguments
-                for (const mapping of toolCall.dependsOn.outputMapping) {
-                    console.log(`Mapping ${mapping.from} to ${mapping.to}`);
-                    try {
-                        const value = this.getValueFromPath(dependencyResult, mapping.from);
-                        toolCall.arguments[mapping.to] = value;
-                        console.log(`✅ Successfully mapped value:`, { [mapping.to]: value });
-                    } catch (error) {
-                        console.error(`❌ Failed to map value from ${mapping.from}:`, error);
-                        throw error;
-                    }
-                }
-                console.log('Final arguments after dependency mapping:', JSON.stringify(toolCall.arguments, null, 2));
-            }
-
             // Execute the tool based on its type
-            console.log('\n⚡ Executing tool with final arguments:', JSON.stringify(toolCall.arguments, null, 2));
+            console.log('\n⚡ Executing tool with final arguments: 2', JSON.stringify(toolCall.arguments, null, 2));
             let result;
             try {
                 switch (toolCall.tool) {
