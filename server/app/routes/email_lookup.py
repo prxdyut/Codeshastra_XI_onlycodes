@@ -5,12 +5,7 @@ def register(app):
     @app.route('/api/email-lookup', methods=['POST'])
     def email_lookup():
         data = request.get_json()
-
-        if not data or 'email' not in data:
-            return jsonify({"error": "Missing email address"}), 400
-
-        result = lookup_email(data['email'])
-        if not result.get('success'):
-            return jsonify({"error": result.get('error', 'Unknown error')}), 400
-            
-        return jsonify(result)
+        email = data.get('email')
+        if not email:
+            return jsonify({"error": "Missing email"}), 400
+        return jsonify(lookup_email(email))

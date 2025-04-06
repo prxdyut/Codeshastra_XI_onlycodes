@@ -352,7 +352,10 @@ const page = () => {
                 throw new Error('No result in API response');
             }
 
-            addMessage('Process completed! Here\'s the final analysis:\n\n' + data.result, "bot");
+            // Remove any "think" tags from the response
+            const cleanedResult = data.result.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+            addMessage('Process completed! Here\'s the final analysis:\n\n' + cleanedResult, "bot");
             addMessage('\nTip: You can copy this report or save it for future reference. The report includes technical details and optimization suggestions that may be valuable for implementation.', "bot");
             
         } catch (error) {
