@@ -48,6 +48,18 @@ export function Sidebar() {
                         Dashboard
                     </Link>
 
+                    <Link
+                        href="/dashboard/schedule"
+                        className={`flex items-center gap-2 text-sm ${
+                            pathname === "/dashboard/schedule"
+                                ? "text-[#78A083] font-medium"
+                                : "text-[#5E5F6E]"
+                        }`}
+                    >
+                        <span>📅</span>
+                        Schedule
+                    </Link>
+
                     {TOOL_CATEGORIES.map((category) => (
                         <div key={category.title} className="space-y-2">
                             <button
