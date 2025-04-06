@@ -2,8 +2,8 @@ from flask import request, jsonify
 from app.tools.email_lookup import lookup_email
 
 def register(app):
-    @app.route('/api/lookup/email', methods=['POST'])
-    def lookup_email_endpoint():
+    @app.route('/api/email-lookup', methods=['POST'])
+    def email_lookup():
         data = request.get_json()
         email = data.get('email')
         if not email:

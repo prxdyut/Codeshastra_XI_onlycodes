@@ -37,4 +37,4 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
-server/app/routes/__pycache__
+__pycache__
