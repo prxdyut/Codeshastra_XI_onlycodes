@@ -397,17 +397,8 @@ const page = () => {
     };
 
     return (
-        <div className="h-[calc(100vh-9rem)] flex flex-col bg-[#F5F9F3] p-6">
+        <div className="h-full flex flex-col bg-[#F5F9F3] p-0 m-0">
             <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-[#2D3A3A] mb-2">
-                        Socrates AI
-                    </h1>
-                    <p className="text-[#5E5F6E] text-lg">
-                        Your intelligent data analysis assistant
-                    </p>
-                </div>
 
                 {/* Main Chat Container */}
                 <div className="flex-1 flex flex-col min-h-0">

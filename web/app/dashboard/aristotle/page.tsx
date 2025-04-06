@@ -403,8 +403,22 @@ const Page = () => {
     return (
         <div className="h-full flex flex-col overflow-hidden m-0 p-0 border rounded-lg">
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 overflow-y-auto px-6 pt-6">
-                <div className="max-w-5xl mx-auto space-y-4">
+            <div className="flex-1 overflow-y-auto px-6 pt-6 relative">
+                {/* Grid Background */}
+                <div
+                    className="absolute inset-0 bg-[#F5F9F3]"
+                    style={{
+                        backgroundImage: `
+                            linear-gradient(to right, #E0E6E3 1px, transparent 1px),
+                            linear-gradient(to bottom, #E0E6E3 1px, transparent 1px)
+                        `,
+                        backgroundSize: "24px 24px",
+                        maskImage:
+                            "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+                        opacity: 0.5,
+                    }}
+                />
+                <div className="max-w-5xl mx-auto space-y-4 relative">
                     {messages.map((message, index) => (
                         <div
                             key={index}

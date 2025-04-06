@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import {
+    add,
+    format,
+    sub,
+    isSameMonth,
+    isSameDay,
+    startOfMonth,
+    endOfMonth,
+    eachDayOfInterval,
+} from "date-fns";
 
 // Using the theme from landing page
 const THEME = {
@@ -151,6 +161,10 @@ export default function DashboardPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newTask, setNewTask] = useState({ text: "" });
 
     useEffect(() => {
         fetchItems();
@@ -414,49 +428,162 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Right Column - AI Tool Finder */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
-                <h2 className="text-lg font-semibold mb-4">AI Tool Finder</h2>
-                <div className="space-y-4">
-                    <div className="bg-[#F5F9F3] rounded-lg p-4">
-                        <textarea
-                            value={aiQuery}
-                            onChange={(e) => setAiQuery(e.target.value)}
-                            placeholder="What would you like to do? (e.g., 'I need to format some JSON')"
-                            className="w-full p-3 border rounded bg-white"
-                            rows={3}
-                        />
-                        <button
-                            onClick={handleAIQuery}
-                            disabled={isProcessing || !aiQuery.trim()}
-                            className="w-full mt-2 px-4 py-2 bg-[#78A083] text-white rounded 
-                                     hover:bg-[#6a8f74] disabled:opacity-50 
-                                     disabled:cursor-not-allowed transition-colors"
-                        >
-                            {isProcessing ? "Thinking..." : "Ask AI"}
-                        </button>
+            {/* Right Column - AI Tool Finder and Calendar */}
+            <div className="space-y-6">
+                {/* AI Tool Finder */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
+                    <h2 className="text-lg font-semibold mb-4">
+                        AI Tool Finder
+                    </h2>
+                    <div className="space-y-4">
+                        <div className="bg-[#F5F9F3] rounded-lg p-4">
+                            <textarea
+                                value={aiQuery}
+                                onChange={(e) => setAiQuery(e.target.value)}
+                                placeholder="What would you like to do? (e.g., 'I need to format some JSON')"
+                                className="w-full p-3 border rounded bg-white"
+                                rows={3}
+                            />
+                            <button
+                                onClick={handleAIQuery}
+                                disabled={isProcessing || !aiQuery.trim()}
+                                className="w-full mt-2 px-4 py-2 bg-[#78A083] text-white rounded 
+                                         hover:bg-[#6a8f74] disabled:opacity-50 
+                                         disabled:cursor-not-allowed transition-colors"
+                            >
+                                {isProcessing ? "Thinking..." : "Ask AI"}
+                            </button>
+                        </div>
+
+                        {aiResponse && (
+                            <div
+                                className={`p-4 rounded-lg ${
+                                    aiResponse.action === "redirect"
+                                        ? "bg-blue-50 border border-blue-200"
+                                        : "bg-gray-50 border border-gray-200"
+                                }`}
+                            >
+                                {aiResponse.action === "redirect" ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="animate-spin">↻</span>
+                                        <span>
+                                            Redirecting to:{" "}
+                                            {aiResponse.destination}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <p>{aiResponse.answer}</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Calendar Component */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E0E6E3]">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold">
+                            {format(currentMonth, "MMMM yyyy")}
+                        </h2>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() =>
+                                    setCurrentMonth(
+                                        sub(currentMonth, { months: 1 })
+                                    )
+                                }
+                                className="p-2 hover:bg-[#F5F9F3] rounded-lg"
+                            >
+                                ←
+                            </button>
+                            <button
+                                onClick={() =>
+                                    setCurrentMonth(
+                                        add(currentMonth, { months: 1 })
+                                    )
+                                }
+                                className="p-2 hover:bg-[#F5F9F3] rounded-lg"
+                            >
+                                →
+                            </button>
+                        </div>
                     </div>
 
-                    {aiResponse && (
-                        <div
-                            className={`p-4 rounded-lg ${
-                                aiResponse.action === "redirect"
-                                    ? "bg-blue-50 border border-blue-200"
-                                    : "bg-gray-50 border border-gray-200"
-                            }`}
-                        >
-                            {aiResponse.action === "redirect" ? (
-                                <div className="flex items-center gap-2">
-                                    <span className="animate-spin">↻</span>
-                                    <span>
-                                        Redirecting to: {aiResponse.destination}
-                                    </span>
+                    {/* Calendar Grid */}
+                    <div className="grid grid-cols-7 gap-2 mb-2">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                            (day) => (
+                                <div
+                                    key={day}
+                                    className="text-center text-sm font-medium text-[#5E5F6E]"
+                                >
+                                    {day}
                                 </div>
-                            ) : (
-                                <p>{aiResponse.answer}</p>
-                            )}
+                            )
+                        )}
+                    </div>
+                    <div className="grid grid-cols-7 gap-2">
+                        {eachDayOfInterval({
+                            start: startOfMonth(currentMonth),
+                            end: endOfMonth(currentMonth),
+                        }).map((date, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setSelectedDate(date)}
+                                className={`
+                                    aspect-square p-2 rounded-lg text-sm relative
+                                    ${
+                                        isSameDay(date, selectedDate)
+                                            ? "bg-[#78A083] text-white"
+                                            : isSameMonth(date, currentMonth)
+                                            ? "hover:bg-[#F5F9F3]"
+                                            : "text-[#5E5F6E] opacity-50"
+                                    }
+                                    ${
+                                        items.some((item) =>
+                                            isSameDay(
+                                                new Date(item.timestamp),
+                                                date
+                                            )
+                                        )
+                                            ? "font-bold"
+                                            : ""
+                                    }
+                                `}
+                            >
+                                {format(date, "d")}
+                                {items.some((item) =>
+                                    isSameDay(new Date(item.timestamp), date)
+                                ) && (
+                                    <span className="absolute bottom-1 left-1/2 w-1 h-1 bg-[#78A083] rounded-full"></span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Today's Tasks */}
+                    <div className="mt-6">
+                        <h3 className="font-medium mb-3">
+                            Tasks for {format(selectedDate, "MMM d, yyyy")}
+                        </h3>
+                        <div className="space-y-2">
+                            {items
+                                .filter((item) =>
+                                    isSameDay(
+                                        new Date(item.timestamp),
+                                        selectedDate
+                                    )
+                                )
+                                .map((item) => (
+                                    <div
+                                        key={item._id}
+                                        className="p-2 bg-[#F5F9F3] rounded-lg text-sm"
+                                    >
+                                        {item.data.text}
+                                    </div>
+                                ))}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
